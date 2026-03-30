@@ -1,4 +1,4 @@
-const CACHE = 'box-gutter-v1';
+const CACHE = 'box-gutter-v6';
 const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', e => {

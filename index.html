@@ -5,93 +5,117 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Box Gutter Calculator — AS/NZS 3500.3</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#1565c0">
+  <meta name="theme-color" content="#111111">
   <link rel="apple-touch-icon" href="/icon.svg">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Box Gutter">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
     /* ── Variables ─────────────────────────────────────────────── */
     :root {
-      --blue:       #1565c0;
-      --blue-dark:  #0d3e80;
-      --blue-mid:   #1976d2;
-      --blue-light: #e3f0fb;
-      --green:      #2e7d32;
-      --green-bg:   #e8f5e9;
-      --red:        #c62828;
-      --red-bg:     #ffebee;
-      --orange:     #e65100;
-      --orange-bg:  #fff3e0;
-      --grey-bg:    #f4f6f9;
-      --grey-line:  #dde2ea;
-      --text:       #1a2035;
-      --text-2:     #5a6478;
-      --white:      #ffffff;
-      --card-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      --card-radius: 12px;
-      --mono: 'Courier New', Courier, monospace;
+      --primary:        #444444;
+      --primary-dark:   #222222;
+      --primary-light:  #f0f0f0;
+      --slate-950:      #111111;
+      --slate-700:      #333333;
+      --slate-500:      #666666;
+      --slate-400:      #888888;
+      --slate-300:      #cccccc;
+      --slate-200:      #dddddd;
+      --slate-100:      #f0f0f0;
+      --slate-50:       #f7f7f7;
+      --white:          #ffffff;
+      --green:          #2d7a3a;
+      --green-bg:       #eef5ef;
+      --green-border:   #b5d4b8;
+      --red:            #b91c1c;
+      --red-bg:         #f5eded;
+      --red-border:     #d4bbbb;
+      --amber:          #7a5a10;
+      --amber-bg:       #f5f2eb;
+      --amber-border:   #d4c9a8;
+      --card-shadow:    0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+      --card-shadow-lg: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --card-radius:    10px;
+      --radius-sm:      6px;
+      --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+      --text-xs:   0.75rem;
+      --text-sm:   0.8125rem;
+      --text-base: 0.875rem;
+      --text-lg:   1rem;
+      --text-xl:   1.25rem;
+      --text-2xl:  1.5rem;
     }
 
     /* ── Reset ──────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 15px; scroll-behavior: smooth; }
+    html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
-      background: var(--grey-bg);
-      color: var(--text);
-      line-height: 1.55;
+      font-family: var(--font-sans);
+      background: var(--slate-50);
+      color: var(--slate-700);
+      line-height: 1.6;
       min-height: 100vh;
+      font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     }
 
     /* ── App Shell ──────────────────────────────────────────────── */
     #app {
-      max-width: 1280px;
+      max-width: 1320px;
       margin: 0 auto;
-      padding: 0 1rem 2rem;
+      padding: 0 1.5rem 2rem;
     }
 
     /* ── Header ─────────────────────────────────────────────────── */
     #app-header {
-      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 100%);
-      color: #fff;
+      background: var(--white);
+      color: var(--slate-950);
       padding: 1.25rem 1.5rem;
-      margin: 0 -1rem 1.5rem;
+      margin: 0 -1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
       flex-wrap: wrap;
+      border-bottom: 1px solid var(--slate-200);
     }
     .header-left { display: flex; align-items: center; gap: 0.85rem; }
     .header-icon {
-      width: 44px; height: 44px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 10px;
+      width: 40px; height: 40px;
+      background: var(--primary-light);
+      border-radius: var(--radius-sm);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; flex-shrink: 0;
+      flex-shrink: 0;
     }
-    #app-header h1 { font-size: 1.15rem; font-weight: 700; line-height: 1.25; }
+    #app-header h1 { font-size: var(--text-lg); font-weight: 700; line-height: 1.3; color: var(--slate-950); }
     #app-header h1 small {
-      display: block; font-size: 0.78rem;
-      font-weight: 400; opacity: 0.8; margin-top: 2px;
+      display: block; font-size: var(--text-sm);
+      font-weight: 400; color: var(--slate-500); margin-top: 1px;
     }
     .std-pill {
-      background: rgba(255,255,255,0.18);
-      border: 1px solid rgba(255,255,255,0.35);
-      color: #fff; padding: 0.3rem 0.85rem;
-      border-radius: 20px; font-size: 0.78rem; font-weight: 600;
-      white-space: nowrap; letter-spacing: 0.03em;
+      background: var(--slate-100);
+      border: 1px solid var(--slate-300);
+      color: var(--slate-700); padding: 0.3rem 0.75rem;
+      border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 600;
+      white-space: nowrap; letter-spacing: 0.02em;
     }
 
     /* ── Two-column layout ──────────────────────────────────────── */
     #layout {
       display: grid;
-      grid-template-columns: 400px 1fr;
-      gap: 1.25rem;
+      grid-template-columns: 380px 1fr;
+      gap: 1.5rem;
       align-items: start;
+      margin-top: 1.5rem;
     }
-    @media (max-width: 900px) {
+    #input-col { display: flex; flex-direction: column; gap: 1rem; }
+    @media (max-width: 960px) {
       #layout { grid-template-columns: 1fr; }
     }
 
@@ -100,110 +124,210 @@
       background: var(--white);
       border-radius: var(--card-radius);
       box-shadow: var(--card-shadow);
+      border: 1px solid var(--slate-200);
       overflow: hidden;
     }
     .card-header {
-      padding: 0.75rem 1.1rem;
-      border-bottom: 1px solid var(--grey-line);
-      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--slate-200);
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--slate-50);
     }
     .card-header h2 {
-      font-size: 0.82rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      color: var(--blue);
+      font-size: var(--text-xs); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--slate-500);
     }
-    .card-header .ch-icon { font-size: 1.05rem; }
-    .card-body { padding: 1rem 1.1rem; }
+    .card-header .ch-icon { display: none; }
+    .card-body { padding: 1.25rem; }
 
     /* ── Form Elements ──────────────────────────────────────────── */
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.65rem;
+      gap: 1rem;
     }
     .form-grid.cols-1 { grid-template-columns: 1fr; }
     .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-    .fg { display: flex; flex-direction: column; gap: 4px; }
+    .fg { display: flex; flex-direction: column; gap: 5px; }
     .fg.span2 { grid-column: span 2; }
     label {
-      font-size: 0.76rem; font-weight: 600;
-      color: var(--text-2); letter-spacing: 0.01em;
+      font-size: var(--text-sm); font-weight: 500;
+      color: var(--slate-500); letter-spacing: 0.01em;
     }
+    label .req { color: var(--red); font-weight: 600; }
     input[type="text"], input[type="number"], select {
-      border: 1.5px solid var(--grey-line);
-      border-radius: 7px;
-      padding: 0.45rem 0.65rem;
-      font-size: 0.9rem;
-      font-family: inherit;
-      color: var(--text);
-      background: #fff;
+      border: 1.5px solid var(--slate-300);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.75rem;
+      font-size: var(--text-base);
+      font-family: var(--font-sans);
+      color: var(--slate-950);
+      background: var(--white);
       width: 100%;
       transition: border-color 0.15s, box-shadow 0.15s;
       -webkit-appearance: none; appearance: none;
     }
     input:focus, select:focus {
       outline: none;
-      border-color: var(--blue-mid);
-      box-shadow: 0 0 0 3px rgba(25,118,210,0.12);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(68,68,68,0.12);
     }
     input[readonly] {
-      background: var(--grey-bg);
-      color: var(--text-2);
+      background: var(--slate-100);
+      color: var(--slate-500);
       cursor: default;
-      border-color: var(--grey-line);
+      border-color: var(--slate-200);
     }
-    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6478' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.65rem center; padding-right: 2rem; }
-    .field-hint  { font-size: 0.7rem; color: var(--text-2); }
-    .field-error { font-size: 0.7rem; color: var(--red); min-height: 0.95rem; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.65rem center; padding-right: 2rem; }
+    .field-hint  { font-size: var(--text-xs); color: var(--slate-400); }
+    .field-error { font-size: var(--text-xs); color: var(--red); min-height: 1rem; }
+    input.field-invalid, select.field-invalid {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(220,38,38,0.1);
+      animation: shake 0.3s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
 
-    /* Segment control (method picker) */
+    /* ── Location picker ─────────────────────────────────────── */
+    .loc-picker { display: flex; flex-direction: column; gap: 6px; position: relative; }
+    .loc-search-row { display: flex; gap: 6px; }
+    .loc-search-row input {
+      flex: 1;
+      font-size: var(--text-base);
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--slate-300);
+      border-radius: var(--radius-sm);
+    }
+    .btn-icon {
+      padding: 0.4rem 0.6rem;
+      border: 1px solid var(--slate-300);
+      border-radius: var(--radius-sm);
+      background: var(--white);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      transition: background 0.15s;
+    }
+    .btn-icon:hover { background: var(--slate-100); }
+    .loc-suggestions {
+      display: none;
+      position: absolute; z-index: 1000;
+      background: var(--white);
+      border: 1px solid var(--slate-300);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--card-shadow-lg);
+      max-height: 200px; overflow-y: auto;
+      width: calc(100% - 52px);
+    }
+    .loc-suggestions.open { display: block; }
+    .loc-sug-item {
+      padding: 0.5rem 0.75rem;
+      font-size: var(--text-sm);
+      cursor: pointer;
+      border-bottom: 1px solid var(--slate-100);
+    }
+    .loc-sug-item:hover, .loc-sug-item.active { background: var(--primary-light); }
+    .loc-sug-item:last-child { border-bottom: none; }
+    .loc-map {
+      height: 220px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--slate-300);
+      z-index: 1;
+    }
+    .loc-coords-row {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 4px;
+    }
+    .loc-coords { font-size: var(--text-xs); color: var(--slate-500); font-weight: 500; }
+    .loc-nearest { font-size: var(--text-xs); color: var(--slate-400); }
+    .bom-link {
+      display: inline-block;
+      font-size: var(--text-xs);
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.3rem 0;
+    }
+    .bom-link:hover { text-decoration: underline; }
+    @media print {
+      .loc-picker { display: none; }
+    }
+
+    /* Segment control (method picker) — iOS-style pill toggle */
     .seg-ctrl {
       display: flex;
-      border: 1.5px solid var(--grey-line);
-      border-radius: 7px;
-      overflow: hidden;
+      background: var(--slate-100);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
     }
     .seg-ctrl input[type="radio"] { display: none; }
     .seg-ctrl label {
       flex: 1; text-align: center;
-      padding: 0.42rem 0.25rem;
-      font-size: 0.78rem; font-weight: 600;
-      color: var(--text-2);
+      padding: 0.5rem 0.25rem;
+      font-size: var(--text-sm); font-weight: 500;
+      color: var(--slate-500);
       cursor: pointer;
-      border-right: 1px solid var(--grey-line);
-      transition: background 0.12s, color 0.12s;
-      letter-spacing: 0;
+      border: none; border-radius: 4px;
+      transition: all 0.15s ease;
     }
-    .seg-ctrl label:last-of-type { border-right: none; }
+    .seg-ctrl label:hover { color: var(--slate-700); }
     .seg-ctrl input[type="radio"]:checked + label {
-      background: var(--blue);
-      color: #fff;
+      background: var(--white);
+      color: var(--slate-950);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .seg-ctrl .seg-sub {
+      font-size: var(--text-xs); font-weight: 400; color: var(--slate-400);
+    }
+    .seg-ctrl input[type="radio"]:checked + label .seg-sub {
+      color: var(--slate-500);
+    }
+    @media (max-width: 500px) {
+      .seg-ctrl { flex-direction: column; gap: 2px; }
+      .seg-ctrl label { padding: 0.55rem 0.5rem; }
+      #metrics-strip { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid.cols-3 { grid-template-columns: 1fr; }
+      .fg.span2 { grid-column: span 1; }
+      #app-header { padding: 1rem; }
+      .std-pill { font-size: 0.7rem; padding: 0.25rem 0.6rem; }
+      .metric-value { font-size: var(--text-xl); }
     }
 
     /* Divider between form sections */
     .form-sep {
-      border: none; border-top: 1px solid var(--grey-line);
-      margin: 0.85rem 0;
+      border: none; border-top: 1px solid var(--slate-200);
+      margin: 1rem 0;
     }
 
     /* ── Action buttons ─────────────────────────────────────────── */
     .action-bar {
-      display: flex; gap: 0.6rem; margin-top: 0.9rem; flex-wrap: wrap;
+      display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;
+    }
+    @media (max-width: 500px) {
+      .action-bar { flex-direction: column; }
+      .action-bar .btn { justify-content: center; }
     }
     .btn {
-      padding: 0.6rem 1.3rem;
-      border: none; border-radius: 8px;
-      font-size: 0.88rem; font-family: inherit;
+      padding: 0.6rem 1.25rem;
+      border: none; border-radius: var(--radius-sm);
+      font-size: var(--text-base); font-family: var(--font-sans);
       font-weight: 600; cursor: pointer;
-      transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+      transition: all 0.12s ease;
       display: inline-flex; align-items: center; gap: 0.4rem;
     }
-    .btn:active { transform: scale(0.97); }
-    .btn-calc  { background: var(--blue); color: #fff; flex: 1; justify-content: center; }
-    .btn-calc:hover { background: var(--blue-dark); box-shadow: 0 4px 12px rgba(21,101,192,0.35); }
-    .btn-reset { background: var(--grey-line); color: var(--text); }
-    .btn-print { background: #37474f; color: #fff; }
-    .btn-print:hover { background: #263238; }
+    .btn:active { transform: scale(0.98); }
+    .btn-reset { background: #fef2f2; color: #991b1b; border: 1.5px solid #fca5a5; }
+    .btn-reset:hover { background: #fee2e2; border-color: #f87171; }
+    .btn-print { background: var(--white); color: var(--slate-700); border: 1.5px solid var(--slate-300); }
+    .btn-print:hover { background: var(--slate-50); border-color: var(--slate-400); }
 
     /* ── Results Panel ──────────────────────────────────────────── */
     #results-col { display: flex; flex-direction: column; gap: 1rem; }
@@ -213,18 +337,19 @@
       background: var(--white);
       border-radius: var(--card-radius);
       box-shadow: var(--card-shadow);
-      padding: 3.5rem 2rem;
+      border: 1px solid var(--slate-200);
+      padding: 4rem 2rem;
       text-align: center;
-      color: var(--text-2);
+      color: var(--slate-400);
     }
-    #placeholder .ph-icon { font-size: 3.5rem; margin-bottom: 0.75rem; }
-    #placeholder p { font-size: 0.92rem; max-width: 280px; margin: 0 auto; }
+    #placeholder .ph-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.4; }
+    #placeholder p { font-size: var(--text-base); max-width: 300px; margin: 0 auto; line-height: 1.6; }
 
     /* ── Key Metrics Strip ──────────────────────────────────────── */
     #metrics-strip {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 0.75rem;
+      gap: 1rem;
     }
     @media (max-width: 700px) {
       #metrics-strip { grid-template-columns: 1fr 1fr; }
@@ -233,36 +358,47 @@
       background: var(--white);
       border-radius: var(--card-radius);
       box-shadow: var(--card-shadow);
-      padding: 1rem;
-      display: flex; flex-direction: column; gap: 4px;
-      border-top: 3px solid var(--blue);
+      border: 1px solid var(--slate-200);
+      padding: 1.25rem;
+      display: flex; flex-direction: column; gap: 6px;
+      border-top: none;
+      position: relative;
       transition: box-shadow 0.15s;
     }
-    .metric-card.pass { border-top-color: var(--green); }
-    .metric-card.fail { border-top-color: var(--red); }
-    .metric-card.warn { border-top-color: var(--orange); }
-    .metric-icon { font-size: 1.4rem; margin-bottom: 2px; }
-    .metric-label { font-size: 0.7rem; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; }
-    .metric-value { font-size: 1.35rem; font-weight: 800; color: var(--text); line-height: 1.1; }
-    .metric-sub   { font-size: 0.72rem; color: var(--text-2); }
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 1rem; right: 1rem;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--slate-300);
+    }
+    .metric-card.pass::before { background: var(--green); }
+    .metric-card.fail::before { background: var(--red); }
+    .metric-card.warn::before { background: var(--amber); }
+    .metric-icon { display: none; }
+    .metric-label { font-size: var(--text-xs); font-weight: 500; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.06em; }
+    .metric-value { font-size: var(--text-2xl); font-weight: 800; color: var(--slate-950); line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .metric-sub   { font-size: var(--text-xs); color: var(--slate-400); }
 
     /* ── Warnings ───────────────────────────────────────────────── */
     #warn-card {
-      background: #fff8e1;
+      background: var(--amber-bg);
       border-radius: var(--card-radius);
-      box-shadow: var(--card-shadow);
-      border-left: 4px solid #f9a825;
-      padding: 0.85rem 1rem;
+      border: 1px solid var(--amber-border);
+      border-left: 3px solid var(--amber);
+      padding: 1rem 1.25rem;
+      box-shadow: none;
     }
-    #warn-card h4 { font-size: 0.8rem; font-weight: 700; color: var(--orange); margin-bottom: 0.4rem; }
-    #warn-card ul { padding-left: 1.1rem; font-size: 0.8rem; color: #6d3a00; }
-    #warn-card li { margin-bottom: 0.25rem; }
+    #warn-card h4 { font-size: var(--text-sm); font-weight: 600; color: var(--amber); margin-bottom: 0.5rem; }
+    #warn-card ul { padding-left: 1.1rem; font-size: var(--text-sm); color: #7a5a10; line-height: 1.6; }
+    #warn-card li { margin-bottom: 0.3rem; }
 
     /* ── Detail Tables ──────────────────────────────────────────── */
     .detail-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.85rem;
+      gap: 1rem;
     }
     @media (max-width: 700px) {
       .detail-grid { grid-template-columns: 1fr; }
@@ -271,82 +407,98 @@
       background: var(--white);
       border-radius: var(--card-radius);
       box-shadow: var(--card-shadow);
+      border: 1px solid var(--slate-200);
       overflow: hidden;
     }
     .dc-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0.6rem 0.9rem;
-      background: var(--blue-light);
-      border-bottom: 1px solid #c5d9ee;
+      padding: 0.75rem 1rem;
+      background: var(--white);
+      border-bottom: 1px solid var(--slate-200);
     }
-    .dc-title { font-size: 0.78rem; font-weight: 700; color: var(--blue-dark); display: flex; align-items: center; gap: 0.4rem; }
+    .dc-title { font-size: var(--text-sm); font-weight: 600; color: var(--slate-950); display: flex; align-items: center; gap: 0.4rem; }
     .clause-tag {
-      font-size: 0.67rem; background: var(--blue); color: #fff;
-      padding: 1px 7px; border-radius: 10px; font-weight: 600;
+      font-size: 0.65rem; background: var(--slate-100); color: var(--slate-500);
+      padding: 2px 8px; border-radius: 4px; font-weight: 500;
+      font-family: var(--font-mono);
     }
-    .dc-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .dc-table td { padding: 0.38rem 0.75rem; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+    .dc-table { width: 100%; border-collapse: collapse; font-size: var(--text-base); }
+    .dc-table td { padding: 0.45rem 1rem; border-bottom: 1px solid var(--slate-100); vertical-align: middle; }
     .dc-table tr:last-child td { border-bottom: none; }
-    .dc-table .lbl { color: var(--text-2); }
-    .dc-table .val { font-weight: 700; text-align: right; }
+    .dc-table tr:nth-child(even):not([data-s]) { background: var(--slate-50); }
+    .dc-table .lbl { color: var(--slate-500); font-size: var(--text-sm); }
+    .dc-table .val { font-weight: 600; text-align: right; color: var(--slate-950); font-variant-numeric: tabular-nums; }
     .dc-table .sta { width: 54px; text-align: center; }
-    .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.02em; }
     .badge-pass { background: var(--green-bg); color: var(--green); }
     .badge-fail { background: var(--red-bg); color: var(--red); }
-    .badge-warn { background: var(--orange-bg); color: var(--orange); }
+    .badge-warn { background: var(--amber-bg); color: var(--amber); }
 
     /* highlight rows with status */
     tr[data-s="pass"] { background: var(--green-bg); }
     tr[data-s="fail"] { background: var(--red-bg); }
-    tr[data-s="warn"] { background: var(--orange-bg); }
+    tr[data-s="warn"] { background: var(--amber-bg); }
 
     /* ── Compliance Summary Card ────────────────────────────────── */
     #compliance-card {
       background: var(--white);
       border-radius: var(--card-radius);
       box-shadow: var(--card-shadow);
+      border: 1px solid var(--slate-200);
       overflow: hidden;
     }
     .comp-header {
-      padding: 0.65rem 1rem;
-      background: var(--blue);
-      color: #fff;
-      font-size: 0.82rem; font-weight: 700;
+      padding: 0.75rem 1.25rem;
+      background: var(--slate-950);
+      color: var(--white);
+      font-size: var(--text-sm); font-weight: 600;
       display: flex; align-items: center; gap: 0.5rem;
+      letter-spacing: 0.02em;
     }
-    #comp-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    #comp-table td { padding: 0.4rem 1rem; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+    .comp-verdict {
+      padding: 0.65rem 1.25rem;
+      font-size: var(--text-sm); font-weight: 600;
+      display: flex; align-items: center; gap: 0.5rem;
+      border-bottom: 1px solid var(--slate-200);
+    }
+    .comp-verdict.all-pass { background: var(--green-bg); color: var(--green); border-left: 3px solid var(--green); }
+    .comp-verdict.has-fail { background: var(--red-bg); color: var(--red); border-left: 3px solid var(--red); }
+    #comp-table { width: 100%; border-collapse: collapse; font-size: var(--text-base); }
+    #comp-table td { padding: 0.45rem 1rem; border-bottom: 1px solid var(--slate-100); vertical-align: middle; }
     #comp-table tr:last-child td { border-bottom: none; }
-    #comp-table .val { font-weight: 700; text-align: right; }
+    #comp-table tr:nth-child(even):not([data-s]) { background: var(--slate-50); }
+    #comp-table .val { font-weight: 600; text-align: right; color: var(--slate-950); }
 
     /* ── Formula Workings ───────────────────────────────────────── */
     #workings-card {
       background: var(--white);
       border-radius: var(--card-radius);
       box-shadow: var(--card-shadow);
+      border: 1px solid var(--slate-200);
       overflow: hidden;
     }
     #workings-card summary {
       list-style: none;
-      padding: 0.7rem 1rem;
-      background: var(--grey-bg);
-      border-bottom: 1px solid var(--grey-line);
-      font-size: 0.8rem; font-weight: 700;
-      color: var(--text-2); cursor: pointer;
+      padding: 0.75rem 1.25rem;
+      background: var(--white);
+      border-bottom: 1px solid var(--slate-200);
+      font-size: var(--text-sm); font-weight: 600;
+      color: var(--slate-700); cursor: pointer;
       display: flex; align-items: center; justify-content: space-between;
     }
+    #workings-card summary:hover { background: var(--slate-50); }
     #workings-card summary::-webkit-details-marker { display: none; }
-    #workings-card summary .toggle-hint { font-weight: 400; font-size: 0.72rem; }
+    #workings-card summary .toggle-hint { font-weight: 400; font-size: var(--text-xs); color: var(--slate-400); }
     #workings-card[open] summary .toggle-hint { content: ''; }
     #formula-content {
-      padding: 1rem;
-      font-family: var(--mono);
-      font-size: 0.76rem;
-      line-height: 1.75;
-      color: var(--text);
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      line-height: 1.8;
+      color: var(--slate-700);
       white-space: pre-wrap;
-      background: #fafbfc;
-      border-top: 1px solid var(--grey-line);
+      background: var(--slate-50);
+      border-top: 1px solid var(--slate-200);
     }
 
     /* ── Charts ─────────────────────────────────────────────────── */
@@ -354,67 +506,244 @@
     #charts-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.85rem;
+      gap: 1rem;
     }
     @media (max-width: 700px) {
       #charts-grid { grid-template-columns: 1fr; }
     }
     .chart-wrap {
-      background: #fff;
-      border-radius: 8px;
-      border: 1px solid var(--grey-line);
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--slate-200);
       overflow: hidden;
     }
     .chart-wrap canvas { display: block; width: 100%; height: auto; }
-    @media print { #charts-panel { display: none !important; } }
+    /* charts visible in print — see @media print block */
 
     /* ── Footer ─────────────────────────────────────────────────── */
     #app-footer {
-      margin-top: 1.5rem;
-      padding: 0.85rem 1.1rem;
+      margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
       background: var(--white);
-      border-radius: 8px;
-      box-shadow: var(--card-shadow);
-      font-size: 0.73rem;
-      color: var(--text-2);
-      line-height: 1.55;
+      border-radius: var(--card-radius);
+      border: 1px solid var(--slate-200);
+      box-shadow: none;
+      font-size: var(--text-xs);
+      color: var(--slate-400);
+      line-height: 1.65;
     }
-    #app-footer strong { color: var(--text); }
+    #app-footer strong { color: var(--slate-700); }
+
+    /* ── Skip link ──────────────────────────────────────────────── */
+    .skip-link {
+      position: absolute; top: -100%; left: 1rem;
+      background: var(--slate-950); color: var(--white);
+      padding: 0.5rem 1rem; border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      font-size: var(--text-sm); font-weight: 600; z-index: 1000;
+      text-decoration: none;
+    }
+    .skip-link:focus { top: 0; }
 
     /* ── Fade-in animation ──────────────────────────────────────── */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    .fadein { animation: fadeUp 0.25s ease both; }
+    .fadein { animation: fadeUp 0.2s ease both; }
+    @media (prefers-reduced-motion: reduce) {
+      .fadein { animation: none; }
+      * { transition-duration: 0.01ms !important; }
+    }
 
     /* ── Print styles ───────────────────────────────────────────── */
     #print-header { display: none; }
+    #print-footer { display: none; }
     @media print {
-      body { font-size: 9pt; background: #fff; }
-      #app { padding: 0; }
-      #app-header, #input-col, #app-footer, .action-bar, .btn-print { display: none !important; }
-      #results-col { display: block; }
-      #layout { display: block; }
-      #metrics-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.5rem; margin-bottom: 0.75rem; }
-      .detail-grid { display: grid; grid-template-columns: 1fr 1fr; }
-      .card, .metric-card, .detail-card, #compliance-card, #workings-card, #warn-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
-      #workings-card[open] #formula-content, #formula-content { display: block !important; }
-      #print-header { display: block !important; margin-bottom: 1rem; font-size: 9pt; }
+      @page { size: A4; margin: 12mm 14mm 16mm 14mm; }
+
+      *, *::before, *::after { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { font-size: 9pt; background: #fff; color: #111; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; line-height: 1.45; }
+      #app { padding: 0; max-width: 100%; }
+      #app-header, #input-col, .action-bar, .btn-print, .skip-link, #placeholder { display: none !important; }
+      #results-col { display: block !important; }
+      #layout { display: block !important; margin-top: 0; }
+
+      /* Hide empty/inactive sections — respect inline display:none */
+      #warn-card[style*="display: none"],
+      #warn-card[style*="display:none"],
+      #metrics-strip[style*="display: none"],
+      #metrics-strip[style*="display:none"],
+      #detail-grid[style*="display: none"],
+      #detail-grid[style*="display:none"],
+      #compliance-card[style*="display: none"],
+      #compliance-card[style*="display:none"],
+      #workings-card[style*="display: none"],
+      #workings-card[style*="display:none"],
+      #charts-panel[style*="display: none"],
+      #charts-panel[style*="display:none"] { display: none !important; }
+
+      /* ── Print header title block ── */
+      #print-header {
+        display: block !important;
+        margin-bottom: 0.6rem;
+        font-size: 8.5pt;
+      }
       #print-header table { width: 100%; border-collapse: collapse; }
-      #print-header td { border: 1px solid #999; padding: 3px 6px; }
-      #print-header .ph-title td { background: #1565c0; color: #fff; font-weight: bold; text-align: center; font-size: 11pt; }
-      @page { size: A4; margin: 14mm 12mm; }
+      #print-header td { border: 1px solid #aaa; padding: 4px 8px; }
+      #print-header .ph-title td {
+        background: #111 !important; color: #fff;
+        font-weight: 700; text-align: center;
+        font-size: 11pt; padding: 6px 8px;
+        letter-spacing: 0.03em;
+      }
+      #print-header tr:not(.ph-title) td { font-size: 8.5pt; }
+      #print-header tr:not(.ph-title) td b { color: #222; }
+
+      /* ── Warnings — greyscale ── */
+      #warn-card {
+        border: 1.5px solid #999; border-left: 4px solid #555;
+        border-radius: 0; padding: 0.4rem 0.6rem;
+        margin-bottom: 0.5rem; background: #f5f5f5 !important;
+        break-inside: avoid; box-shadow: none;
+      }
+      #warn-card h4 { font-size: 8pt; margin-bottom: 0.2rem; color: #222; }
+      #warn-card ul { font-size: 8pt; margin: 0; color: #333; }
+      #warn-card li { margin-bottom: 0.1rem; }
+
+      /* ── Metric strip — tight horizontal bar ── */
+      #metrics-strip {
+        display: grid; grid-template-columns: repeat(4,1fr);
+        gap: 0; margin-bottom: 0.6rem;
+        border: 1.5px solid #999;
+      }
+      .metric-card {
+        border: none; border-right: 1px solid #bbb;
+        border-radius: 0; box-shadow: none;
+        padding: 0.45rem 0.6rem;
+        text-align: center;
+        background: #f5f5f5 !important;
+      }
+      .metric-card:last-child { border-right: none; }
+      .metric-card::before { display: none; }
+      .metric-icon { display: none; }
+      .metric-label { font-size: 6.5pt; color: #555; margin-bottom: 1px; letter-spacing: 0.08em; }
+      .metric-value { font-size: 12pt; font-weight: 800; color: #000; line-height: 1.2; }
+      .metric-sub { font-size: 6.5pt; color: #666; }
+
+      /* ── Section label styling ── */
+      .dc-header, .card-header {
+        background: #eee !important;
+        border-bottom: 1px solid #aaa;
+        padding: 0.3rem 0.5rem;
+      }
+      .dc-title { font-size: 8.5pt; font-weight: 700; color: #111; }
+      .clause-tag { font-size: 6pt; background: #ddd !important; color: #444; padding: 1px 5px; border-radius: 2px; }
+
+      /* ── Detail grid — 2 column compact ── */
+      .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem; }
+      .detail-card {
+        break-inside: avoid; box-shadow: none;
+        border: 1px solid #aaa; border-radius: 0; overflow: hidden;
+      }
+
+      /* ── Tables — clean lines, greyscale status ── */
+      .dc-table { font-size: 8pt; }
+      .dc-table td { padding: 0.2rem 0.4rem; border-bottom: 1px solid #ddd; }
+      .dc-table .lbl { font-size: 7.5pt; color: #444; }
+      .dc-table .val { font-size: 8pt; font-weight: 600; color: #111; }
+      .dc-table .sta { width: 40px; }
+      .badge { font-size: 6pt; padding: 1px 4px; border-radius: 2px; font-weight: 700; }
+      .badge-pass { background: #e0e0e0 !important; color: #111; }
+      .badge-fail { background: #333 !important; color: #fff; }
+      .badge-warn { background: #bbb !important; color: #111; }
+      tr[data-s="pass"] { background: #f0f0f0 !important; }
+      tr[data-s="fail"] { background: #e0e0e0 !important; }
+      tr[data-s="warn"] { background: #f5f5f5 !important; }
+
+      /* ── Compliance — prominent ── */
+      #compliance-card {
+        break-inside: avoid; box-shadow: none;
+        border: 1.5px solid #999; border-radius: 0;
+        margin-bottom: 0.5rem;
+      }
+      .comp-header {
+        background: #111 !important; color: #fff;
+        padding: 0.35rem 0.6rem; font-size: 8.5pt;
+      }
+      .comp-verdict {
+        padding: 0.3rem 0.6rem; font-size: 8pt;
+        border-bottom: 1px solid #aaa;
+      }
+      .comp-verdict.all-pass { background: #f0f0f0 !important; color: #222; border-left: 4px solid #555; }
+      .comp-verdict.has-fail { background: #ddd !important; color: #111; border-left: 4px solid #111; font-weight: 700; }
+      #comp-table { font-size: 8pt; }
+      #comp-table td { padding: 0.2rem 0.5rem; border-bottom: 1px solid #ddd; }
+
+      /* ── Workings — always open, compact ── */
+      #workings-card {
+        break-inside: avoid; box-shadow: none;
+        border: 1px solid #aaa; border-radius: 0;
+        margin-bottom: 0.5rem;
+      }
+      #workings-card summary { font-size: 8.5pt; padding: 0.3rem 0.6rem; background: #eee !important; color: #222; }
+      #workings-card[open] #formula-content, #formula-content {
+        display: block !important;
+        font-size: 7pt; line-height: 1.55;
+        padding: 0.4rem 0.6rem;
+        background: #fafafa !important;
+        color: #222;
+      }
+
+      /* ── Charts — SHOW in print, 2-col ── */
+      #charts-panel { display: block !important; margin-bottom: 0.5rem; break-before: page; }
+      #charts-panel .card {
+        box-shadow: none; border: 1px solid #aaa; border-radius: 0;
+        break-inside: avoid;
+      }
+      #charts-panel .card-header {
+        background: #eee !important;
+        padding: 0.3rem 0.6rem;
+        border-bottom: 1px solid #aaa;
+      }
+      #charts-panel .card-header h2 { font-size: 8pt; color: #222; }
+      #charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+      .chart-wrap { border: 1px solid #bbb; border-radius: 0; break-inside: avoid; }
+      .chart-wrap canvas { display: none; }
+      .chart-wrap .print-chart-img { display: block; width: 100%; height: auto; }
+      .chart-wrap[style*="display: none"],
+      .chart-wrap[style*="display:none"] { display: none !important; }
+
+      /* ── Print footer disclaimer ── */
+      #print-footer {
+        display: block !important;
+        margin-top: 0.6rem;
+        padding: 0.4rem 0.6rem;
+        border: 1px solid #aaa;
+        font-size: 6.5pt;
+        color: #555;
+        line-height: 1.45;
+      }
+      #print-footer strong { color: #222; }
+
+      /* ── App footer — hide ── */
+      #app-footer { display: none !important; }
+
+      /* ── General cleanup ── */
+      .fadein { animation: none !important; }
+      a { text-decoration: none; color: inherit; }
     }
   </style>
 </head>
 <body>
+<a href="#input-col" class="skip-link">Skip to calculator</a>
 <div id="app">
 
   <!-- Header -->
-  <header id="app-header">
+  <header id="app-header" role="banner">
     <div class="header-left">
-      <div class="header-icon">&#127783;</div>
+      <div class="header-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 6h16v2H3zM3 6v10M19 6v10M5 12h12v3a1 1 0 01-1 1H6a1 1 0 01-1-1v-3z" stroke="#444444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
       <h1>
         Box Gutter Design Calculator
         <small>Stormwater Drainage &mdash; General Methods</small>
@@ -423,15 +752,15 @@
     <span class="std-pill">AS/NZS 3500.3</span>
   </header>
 
-  <div id="layout">
+  <main id="layout" role="main">
 
     <!-- ══ INPUT COLUMN ══════════════════════════════════════════ -->
-    <div id="input-col">
+    <div id="input-col" role="form" aria-label="Design inputs">
 
       <!-- Project Info -->
-      <div class="card" style="margin-bottom:1rem">
+      <div class="card">
         <div class="card-header">
-          <span class="ch-icon">&#128196;</span>
+          <span class="ch-icon" aria-hidden="true">&#128196;</span>
           <h2>Project Info</h2>
         </div>
         <div class="card-body">
@@ -457,27 +786,37 @@
       </div>
 
       <!-- Site & Rainfall -->
-      <div class="card" style="margin-bottom:1rem">
+      <div class="card">
         <div class="card-header">
-          <span class="ch-icon">&#127783;</span>
+          <span class="ch-icon" aria-hidden="true">&#127783;</span>
           <h2>Site &amp; Rainfall</h2>
         </div>
         <div class="card-body">
           <div class="form-grid">
-            <div class="fg">
-              <label for="location">Location</label>
-              <select id="location">
-                <option value="Sydney">Sydney</option>
-                <option value="Melbourne">Melbourne</option>
-                <option value="Brisbane">Brisbane</option>
-                <option value="Perth">Perth</option>
-                <option value="Adelaide">Adelaide</option>
-                <option value="Darwin">Darwin</option>
-                <option value="Hobart">Hobart</option>
-                <option value="Canberra">Canberra</option>
-                <option value="Manual">&#9998; Manual Entry</option>
-              </select>
+            <!-- Hidden inputs for location data -->
+            <input type="hidden" id="location" value="Sydney">
+            <input type="hidden" id="loc-lat" value="-33.8688">
+            <input type="hidden" id="loc-lng" value="151.2093">
+
+            <div class="fg span2">
+              <label>Location</label>
+              <div class="loc-picker">
+                <div class="loc-search-row">
+                  <input type="text" id="loc-search" placeholder="Search address or place in Australia…" autocomplete="off">
+                  <button type="button" id="loc-geolocate" class="btn-icon" title="Use my location">📍</button>
+                </div>
+                <div id="loc-suggestions" class="loc-suggestions"></div>
+                <div id="loc-map" class="loc-map"></div>
+                <div class="loc-coords-row">
+                  <span class="loc-coords" id="loc-coords-display">Sydney (−33.8688, 151.2093)</span>
+                  <span class="loc-nearest" id="loc-nearest-city">Nearest reference city: Sydney</span>
+                </div>
+                <a id="bom-ifd-link" class="bom-link" href="https://www.bom.gov.au/water/designRainfalls/revised-ifd/?coordinate_type=dd&latitude=-33.8688&longitude=151.2093&user_label=Site" target="_blank" rel="noopener">
+                  🔗 Look up exact IFD on BOM website
+                </a>
+              </div>
             </div>
+
             <div class="fg">
               <label for="ari">Annual Recurrence Interval</label>
               <select id="ari">
@@ -492,12 +831,12 @@
             </div>
             <div class="fg">
               <label for="intensity">Rainfall Intensity (mm/hr)</label>
-              <input type="number" id="intensity" min="1" step="1" placeholder="Auto from BOM IFD">
-              <span class="field-hint" id="intensity-hint">5-min duration · BOM IFD</span>
+              <input type="number" id="intensity" min="1" step="1" placeholder="Enter from BOM IFD lookup">
+              <span class="field-hint" id="intensity-hint">5-min duration · Use BOM link above for site-specific value</span>
               <span class="field-error" id="intensity-error"></span>
             </div>
             <div class="fg">
-              <label for="catchment-area">Catchment Area (m²)</label>
+              <label for="catchment-area">Catchment Area (m²) <span class="req">*</span></label>
               <input type="number" id="catchment-area" min="1" step="1" placeholder="e.g. 250">
               <span class="field-error" id="area-error"></span>
             </div>
@@ -506,9 +845,9 @@
       </div>
 
       <!-- Roof & Gutter -->
-      <div class="card" style="margin-bottom:1rem">
+      <div class="card">
         <div class="card-header">
-          <span class="ch-icon">&#127968;</span>
+          <span class="ch-icon" aria-hidden="true">&#127968;</span>
           <h2>Roof &amp; Gutter</h2>
         </div>
         <div class="card-body">
@@ -594,20 +933,19 @@
           <!-- Method selector -->
           <div class="fg">
             <label>Design Method (AS3500.3)</label>
-            <div class="seg-ctrl">
+            <div class="seg-ctrl" role="tablist" aria-label="Design method selection">
               <input type="radio" name="method" id="m1" value="1" checked>
-              <label for="m1">Method 1<br><span style="font-size:0.65rem;font-weight:400">Rainhead</span></label>
+              <label for="m1">Method 1<br><span class="seg-sub">Rainhead</span></label>
               <input type="radio" name="method" id="m2" value="2">
-              <label for="m2">Method 2<br><span style="font-size:0.65rem;font-weight:400">Side Overflow</span></label>
+              <label for="m2">Method 2<br><span class="seg-sub">Side Overflow</span></label>
               <input type="radio" name="method" id="m3" value="3">
-              <label for="m3">Method 3<br><span style="font-size:0.65rem;font-weight:400">High-Cap. Overflow</span></label>
+              <label for="m3">Method 3<br><span class="seg-sub">High-Cap. Overflow</span></label>
             </div>
           </div>
 
           <div class="action-bar">
-            <button class="btn btn-calc" onclick="handleCalculate()">&#9654; Calculate</button>
-            <button class="btn btn-reset" onclick="handleReset()">&#8635; Reset</button>
-            <button class="btn btn-print" onclick="handlePrint()">&#128438; Print</button>
+            <button class="btn btn-reset" onclick="handleReset()">&#9888; Reset</button>
+            <button class="btn btn-print" onclick="handlePrint()">Print</button>
           </div>
         </div>
       </div>
@@ -615,7 +953,7 @@
     </div><!-- /input-col -->
 
     <!-- ══ RESULTS COLUMN ════════════════════════════════════════ -->
-    <div id="results-col">
+    <div id="results-col" aria-label="Calculation results" aria-live="polite">
 
       <!-- Print header (hidden on screen) -->
       <div id="print-header">
@@ -629,13 +967,13 @@
 
       <!-- Placeholder -->
       <div id="placeholder">
-        <div class="ph-icon">&#128200;</div>
-        <p>Fill in the inputs and tap <strong>Calculate</strong> to generate your design.</p>
+        <div class="ph-icon">&#8212;</div>
+        <p>Fill in the inputs to auto-generate your design.</p>
       </div>
 
       <!-- Warnings -->
       <div id="warn-card" style="display:none">
-        <h4>&#9888;&#65039; Warnings</h4>
+        <h4>Warnings</h4>
         <ul id="warn-list"></ul>
       </div>
 
@@ -673,7 +1011,7 @@
         <!-- Rainfall & Flow -->
         <div class="detail-card">
           <div class="dc-header">
-            <span class="dc-title">&#127783; Rainfall &amp; Design Flow</span>
+            <span class="dc-title">Rainfall &amp; Design Flow</span>
             <span class="clause-tag">Cl. 5.4.6 / Table 3.3.4</span>
           </div>
           <table class="dc-table"><tbody id="tb-rainfall"></tbody></table>
@@ -682,7 +1020,7 @@
         <!-- Box Gutter -->
         <div class="detail-card">
           <div class="dc-header">
-            <span class="dc-title">&#9645; Box Gutter Sizing</span>
+            <span class="dc-title">Box Gutter Sizing</span>
             <span class="clause-tag">Cl. 3.7 / Fig. H.1</span>
           </div>
           <table class="dc-table"><tbody id="tb-gutter"></tbody></table>
@@ -691,16 +1029,16 @@
         <!-- Downpipe -->
         <div class="detail-card">
           <div class="dc-header">
-            <span class="dc-title">&#11123; Downpipe</span>
+            <span class="dc-title">Downpipe</span>
             <span class="clause-tag">Cl. 3.7.8</span>
           </div>
           <table class="dc-table"><tbody id="tb-downpipe"></tbody></table>
         </div>
 
-        <!-- Sump -->
-        <div class="detail-card">
+        <!-- Sump (Methods 2 & 3 only) -->
+        <div class="detail-card" id="sec-sump" style="display:none">
           <div class="dc-header">
-            <span class="dc-title">&#9632; Sump</span>
+            <span class="dc-title">Sump</span>
             <span class="clause-tag">Cl. 3.7.4 / 3.7.6</span>
           </div>
           <table class="dc-table"><tbody id="tb-sump"></tbody></table>
@@ -709,7 +1047,7 @@
         <!-- Rainhead (Method 1) -->
         <div class="detail-card" id="sec-rainhead" style="display:none">
           <div class="dc-header">
-            <span class="dc-title">&#9652; Rainhead</span>
+            <span class="dc-title">Rainhead</span>
             <span class="clause-tag">Cl. 3.7.5 / Fig. H.3</span>
           </div>
           <table class="dc-table"><tbody id="tb-rainhead"></tbody></table>
@@ -719,7 +1057,8 @@
 
       <!-- Compliance Summary -->
       <div id="compliance-card" style="display:none">
-        <div class="comp-header">&#10003; Compliance Summary &mdash; AS/NZS 3500.3</div>
+        <div class="comp-header">Compliance Summary &mdash; AS/NZS 3500.3</div>
+        <div id="comp-verdict" class="comp-verdict"></div>
         <table id="comp-table">
           <tbody id="tb-compliance"></tbody>
         </table>
@@ -728,7 +1067,7 @@
       <!-- Formula workings -->
       <details id="workings-card" style="display:none">
         <summary>
-          &#128196; Calculation Workings
+          Calculation Workings
           <span class="toggle-hint">Click to expand / collapse</span>
         </summary>
         <div id="formula-content"></div>
@@ -738,7 +1077,7 @@
       <div id="charts-panel" style="display:none">
         <div class="card">
           <div class="card-header">
-            <span class="ch-icon">&#128200;</span>
+            <span class="ch-icon" aria-hidden="true">&#128200;</span>
             <h2>Design Charts &mdash; AS/NZS 3500.3 Appendix H</h2>
           </div>
           <div class="card-body" style="padding:0.75rem">
@@ -766,13 +1105,18 @@
         </div>
       </div>
 
+      <!-- Print footer (hidden on screen, shown in print) -->
+      <div id="print-footer">
+        <strong>Disclaimer:</strong> This calculator is a design aid only. Nearest-city rainfall intensity values are indicative only. Use the BOM IFD link to look up the exact 5-minute duration intensity for your pinpointed site coordinates at bom.gov.au/water/designRainfalls/revised-ifd/. All designs must be checked by a suitably qualified engineer and must comply with the current edition of AS/NZS 3500.3 and applicable authority requirements.
+      </div>
+
     </div><!-- /results-col -->
-  </div><!-- /layout -->
+  </main><!-- /layout -->
 
   <!-- Footer disclaimer -->
-  <div id="app-footer">
-    <strong>Disclaimer:</strong> This calculator is a design aid only. Rainfall intensity values are indicative, based on approximate BOM IFD data for 5-minute durations at the nominated city. Verify intensities for your specific site using the Bureau of Meteorology IFD tool (bom.gov.au). All designs must be checked by a suitably qualified engineer and must comply with the current edition of AS/NZS 3500.3 and applicable authority requirements.
-  </div>
+  <footer id="app-footer" role="contentinfo">
+    <strong>Disclaimer:</strong> This calculator is a design aid only. Nearest-city rainfall intensity values are indicative only. Use the BOM IFD link to look up the exact 5-minute duration intensity for your pinpointed site coordinates at bom.gov.au/water/designRainfalls/revised-ifd/. All designs must be checked by a suitably qualified engineer and must comply with the current edition of AS/NZS 3500.3 and applicable authority requirements.
+  </footer>
 
 </div><!-- /app -->
 
@@ -798,6 +1142,27 @@
     Canberra:  [60,   75,  95, 115, 135, 165, 195]
   };
   const ARI_IDX = {1:0, 2:1, 5:2, 10:3, 20:4, 50:5, 100:6};
+
+  // Reference city coordinates for nearest-city IFD lookup
+  const CITY_COORDS = {
+    Sydney:    { lat: -33.8688, lng: 151.2093 },
+    Melbourne: { lat: -37.8136, lng: 144.9631 },
+    Brisbane:  { lat: -27.4698, lng: 153.0251 },
+    Perth:     { lat: -31.9505, lng: 115.8605 },
+    Adelaide:  { lat: -34.9285, lng: 138.6007 },
+    Darwin:    { lat: -12.4634, lng: 130.8456 },
+    Hobart:    { lat: -42.8821, lng: 147.3272 },
+    Canberra:  { lat: -35.2809, lng: 149.1300 }
+  };
+
+  function nearestCity(lat, lng) {
+    let best = null, bestDist = Infinity;
+    for (const [city, c] of Object.entries(CITY_COORDS)) {
+      const d = (lat - c.lat) ** 2 + (lng - c.lng) ** 2;
+      if (d < bestDist) { bestDist = d; best = city; }
+    }
+    return best;
+  }
 
   const MIN_WIDTH = { domestic:0.200, commercial:0.300 };
 
@@ -1005,22 +1370,33 @@
   function clearErrors() {
     ['intensity-error','area-error','slope-error','outlets-error','width-error']
       .forEach(id => { const e = $(id); if (e) e.textContent = ''; });
+    document.querySelectorAll('.field-invalid').forEach(el => el.classList.remove('field-invalid'));
+  }
+
+  function setFieldError(inputId, errorId, msg) {
+    $(errorId).textContent = msg;
+    const inp = $(inputId);
+    if (inp) { inp.classList.remove('field-invalid'); void inp.offsetWidth; inp.classList.add('field-invalid'); }
   }
 
   function validate(v) {
     let ok = true;
     if (!v.I || v.I <= 0)
-      { $('intensity-error').textContent = 'Enter intensity > 0 mm/hr'; ok = false; }
+      { setFieldError('intensity', 'intensity-error', 'Enter intensity > 0 mm/hr'); ok = false; }
     if (!v.A || v.A <= 0)
-      { $('area-error').textContent = 'Enter catchment area > 0 m²'; ok = false; }
+      { setFieldError('catchment-area', 'area-error', 'Enter catchment area > 0 m²'); ok = false; }
     if (!v.S || v.S <= 0)
-      { $('slope-error').textContent = 'Enter a valid slope'; ok = false; }
+      { setFieldError('slope-manual', 'slope-error', 'Enter a valid slope'); ok = false; }
     else if (v.S < SLOPE_MIN - 1e-9)
-      { $('slope-error').textContent = 'Slope flatter than 1:200 — not permitted (Cl. 3.7.3)'; ok = false; }
+      { setFieldError('slope-manual', 'slope-error', 'Slope flatter than 1:200 — not permitted (Cl. 3.7.3)'); ok = false; }
     else if (v.S > SLOPE_MAX + 1e-9)
-      { $('slope-error').textContent = 'Slope steeper than 1:40 — not permitted (Cl. 3.7.3)'; ok = false; }
+      { setFieldError('slope-manual', 'slope-error', 'Slope steeper than 1:40 — not permitted (Cl. 3.7.3)'); ok = false; }
     if (!v.outlets || v.outlets < 1)
-      { $('outlets-error').textContent = 'At least 1 outlet required'; ok = false; }
+      { setFieldError('num-outlets', 'outlets-error', 'At least 1 outlet required'); ok = false; }
+    if (!ok && window.innerWidth <= 900) {
+      const firstErr = document.querySelector('.field-invalid');
+      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     return ok;
   }
 
@@ -1093,10 +1469,12 @@
       rh   = rainheadDims(bG, ha_design, dp, Qout);
       sump = null;
       show('sec-rainhead');
+      hide('sec-sump');
     } else {
       hide('sec-rainhead');
+      show('sec-sump');
       rh = null;
-      sump = sumpDims(method, bG, hs, loc_m, woc_m, Qout);
+      sump = sumpDims(method, bG, method === 2 ? hs_raw : hs, loc_m, woc_m, Qout);
       if (method === 2) {
         // Gutter depth may need to increase to fit overflow channel
         const reqDbg = sump.dbg;
@@ -1111,7 +1489,7 @@
     /* Warnings */
     const warns = [];
     if (lookI && I < lookI)
-      warns.push(`Intensity entered (${I} mm/hr) is below the BOM IFD value for ${loc} at ${ari}-yr ARI (${lookI} mm/hr).`);
+      warns.push(`Intensity entered (${I} mm/hr) is below the nearest-city indicative BOM IFD value for ${loc} at ${ari}-yr ARI (${lookI} mm/hr). Verify your site-specific value via the BOM IFD link.`);
     if (ari < 100)
       warns.push(`AS/NZS 3500.3 Table 3.3.4 requires 1% AEP (100-year ARI) for box gutters. Currently using ${ari}-year ARI.`);
     if (Qout > 16)
@@ -1134,8 +1512,12 @@
     $('mv-gutter').textContent = `${Math.round(bG * 1000)}×${Math.round(d_final * 1000)}`;
     $('mv-dp').textContent     = dp.label;
     if (method === 1) {
-      $('mv-sump').textContent = rh ? `${Math.round(rh.w*1000)}W×${Math.round(rh.hr*1000)}D` : '—';
+      $('mc-sump').querySelector('.metric-label').textContent = 'RAINHEAD';
+      $('mc-sump').querySelector('.metric-sub').textContent = 'W × hr × lr';
+      $('mv-sump').textContent = rh ? `${Math.round(rh.w*1000)}×${Math.round(rh.hr*1000)}×${Math.round(rh.lr*1000)}` : '—';
     } else {
+      $('mc-sump').querySelector('.metric-label').textContent = 'SUMP';
+      $('mc-sump').querySelector('.metric-sub').textContent = 'L × W × D';
       $('mv-sump').textContent = `${Math.round(sump.L*1000)}×${Math.round(sump.W*1000)}×${Math.round(sump.D*1000)}`;
     }
 
@@ -1171,13 +1553,14 @@
       ['Adopt Gutter Size',           `${Math.round(bG*1000)} W × ${Math.round(d_final*1000)} D mm`, null],
     ]);
 
+    const hs_adopt = method === 3 ? Math.max(hs_raw, 0.150) : hs_raw;
     fillTable('tb-downpipe', [
       ['Design Reference',            'AS/NZS 3500.3 Figure H.4 (orifice)',    null],
       ['Flow to Outlet (total)',       Ls(Qout),                                null],
       ['Minimum Permitted',           'DN90 or 100×50 rect.  (Cl. 3.7.8)',    true],
       ['Selected Pipe',               dp.label + (dp.forced ? '  (user)' : '  (auto)'), null],
-      ['Required Sump Depth hs  (Fig H.4)', mmR(hs_raw) + '  →  adopt ' + mm(method === 3 ? Math.max(hs_raw, 0.150) : hs_raw), dp.adequate],
-      ...(method === 3 ? [['Min Sump Depth ≥ 150 mm  (Cl. 3.7.6(e))', mm(Math.max(hs_raw, 0.150)), Math.max(hs_raw, 0.150) >= 0.150]] : []),
+      ['Sump Depth hs  (Fig H.4)',    mmR(hs_raw),                              dp.adequate],
+      ...(method === 3 ? [['Min Sump Depth ≥ 150 mm  (Cl. 3.7.6(e))', mm(hs_adopt), hs_adopt >= 0.150]] : []),
     ]);
 
     if (method === 1 && rh) {
@@ -1208,7 +1591,7 @@
         ['Required Gutter Depth dbg = loc + doc + 30', dbgMm + ' mm',         null],
         ['Sump Length = woc + 2·loc',      mmR(sump.rawL) + '  →  adopt ' + mmR(sump.L), sump.L >= 0.400],
         ['Sump Width (= gutter width)',    mmR(sump.W),                                   true],
-        ['Sump Depth hs  (Fig H.4)',      mm(sump.D),                          sump.D >= 0.150],
+        ['Sump Depth hs  (Fig H.4)',      mm(sump.D),                          true],
         ['Sump Dimensions L × W × D',    `${mmR(sump.L)} × ${mmR(sump.W)} × ${mmR(sump.D)}`, true],
       ]);
     }
@@ -1244,27 +1627,53 @@
       ...(method === 3 && sump ? [['Weir crest length = gutter width  — Cl. 3.7.7', mmR(bG), true]] : []),
     ]);
 
+    /* Compliance verdict */
+    const failCount = $('tb-compliance').querySelectorAll('tr[data-s="fail"]').length;
+    const verdict = $('comp-verdict');
+    if (failCount === 0) {
+      verdict.className = 'comp-verdict all-pass';
+      verdict.textContent = 'All compliance checks passed';
+    } else {
+      verdict.className = 'comp-verdict has-fail';
+      verdict.textContent = `${failCount} check${failCount > 1 ? 's' : ''} failed — review items below`;
+    }
+
     /* Formula workings */
     renderWorkings({ loc, ari, lookI, I, A, Qtot, outlets, Qout, mat, S, slopeDen,
                      bG, ha, ha_design, d_total, d_design, d_final, capG,
                      dp, hs, hs_raw, loc_m, sump, rh, method, minW, btype, woc_m });
 
     /* Warnings panel */
-    $('warn-list').innerHTML = warns.map(w => `<li>${w}</li>`).join('');
+    if (warns.length === 1) {
+      $('warn-list').innerHTML = `<li style="list-style:none;margin-left:-1.1rem">${warns[0]}</li>`;
+    } else {
+      $('warn-list').innerHTML = warns.map(w => `<li>${w}</li>`).join('');
+    }
     $('warn-card').style.display = warns.length ? '' : 'none';
 
     /* Charts */
     renderCharts({ method, Qout, bG, ha_design, d_design, d_final, dp, hs_raw, loc_m, woc_m, sump, rh });
 
     hide('placeholder');
-    ['metrics-strip','detail-grid','compliance-card','workings-card'].forEach(show);
+    ['metrics-strip','detail-grid','compliance-card','workings-card'].forEach(id => {
+      show(id);
+      const el = $(id);
+      if (el) { el.classList.remove('fadein'); void el.offsetWidth; el.classList.add('fadein'); }
+    });
+
+    /* Scroll to results on mobile */
+    if (window.innerWidth <= 900) {
+      const target = $('warn-card').style.display !== 'none' ? $('warn-card') : $('metrics-strip');
+      setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
 
     /* Print header */
     $('pt-project').textContent  = $('project-name').value || '—';
     $('pt-job').textContent      = $('job-number').value   || '—';
     $('pt-designer').textContent = $('designer').value     || '—';
     $('pt-date').textContent     = $('calc-date').value    || new Date().toLocaleDateString('en-AU');
-    $('pt-location').textContent = `${loc}, ${ari}-year ARI (1% AEP)`;
+    var locLabel = $('loc-coords-display').textContent || loc;
+    $('pt-location').textContent = `${locLabel}, ${ari}-year ARI (1% AEP)`;
     $('pt-method').textContent   = `Method ${method}`;
   }
 
@@ -1278,7 +1687,8 @@
       '══════════════════════════════════════════════════════════════════════',
       '',
       'STEP 1 — RAINFALL INTENSITY  (BOM IFD, 5-min, Table 3.3.4)',
-      `  Location  : ${p.loc}`,
+      `  Location  : ${$('loc-coords-display').textContent || p.loc}`,
+      `  Ref. City : ${p.loc}`,
       `  ARI used  : ${p.ari}-year${p.ari < 100 ? '  ⚠  100-yr ARI required for box gutters' : ' (1% AEP) ✓'}`,
       `  BOM IFD   : ${p.lookI ? p.lookI + ' mm/hr' : 'N/A — manual entry'}`,
       `  Design I  : ${p.I} mm/hr`,
@@ -1304,7 +1714,7 @@
       `  Q = ${f3(p.Qout)} L/s    Pipe: ${p.dp.label}    Area: ${(p.dp.area*1e4).toFixed(4)} cm²`,
       `  hs = Q² / [2g × (0.44 × A)²]`,
       `  hs = ${f3(p.Qout/1000)}² / [2×9.81 × (0.44 × ${p.dp.area.toFixed(5)})²]`,
-      `  hs = ${fmm(p.hs_raw)} mm  →  adopt ${Math.round(p.hs*1000)} mm  (min 150 mm, Cl. 3.7.4)`,
+      `  hs = ${fmm(p.hs_raw)} mm` + (p.method === 3 ? `  →  adopt ${Math.round(Math.max(p.hs_raw, 0.150)*1000)} mm  (min 150 mm, Cl. 3.7.6(e))` : ''),
     );
 
     if (p.method === 1 && p.rh) {
@@ -1369,7 +1779,7 @@
   /* ── CHARTS ─────────────────────────────────────────────────── */
 
   const CHART_COLORS = [
-    '#7b1fa2','#1565c0','#00838f','#2e7d32','#ef6c00','#c62828','#37474f','#ad1457','#5d4037'
+    '#111111','#444444','#777777','#999999','#bbbbbb','#555555','#333333','#aaaaaa','#666666'
   ];
 
   function drawChart(canvasId, cfg) {
@@ -1386,28 +1796,28 @@
     const XT = cfg.xTicks || 8, YT = cfg.yTicks || 6;
 
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#fafbfc'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#f7f7f7'; ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = '#fff'; ctx.fillRect(PAD.left, PAD.top, pw, ph);
 
     // Grid
     ctx.lineWidth = 0.7;
     for (let i = 0; i <= XT; i++) {
       const xv = i * xMax / XT, x = tx(xv);
-      ctx.strokeStyle = '#dde2ea';
+      ctx.strokeStyle = '#dddddd';
       ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + ph); ctx.stroke();
-      ctx.fillStyle = '#888'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#666666'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
       ctx.fillText(xv % 1 === 0 ? xv.toFixed(0) : xv.toFixed(1), x, PAD.top + ph + 13);
     }
     for (let i = 0; i <= YT; i++) {
       const yv = i * yMax / YT, y = ty(yv);
-      ctx.strokeStyle = '#dde2ea';
+      ctx.strokeStyle = '#dddddd';
       ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + pw, y); ctx.stroke();
-      ctx.fillStyle = '#888'; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
+      ctx.fillStyle = '#666666'; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
       ctx.fillText(yv.toFixed(0), PAD.left - 4, y + 3);
     }
 
     // Border
-    ctx.strokeStyle = '#9ba7bb'; ctx.lineWidth = 1.2;
+    ctx.strokeStyle = '#888888'; ctx.lineWidth = 1.2;
     ctx.strokeRect(PAD.left, PAD.top, pw, ph);
 
     // Curves (clipped to plot area)
@@ -1458,12 +1868,12 @@
       ctx.beginPath(); ctx.moveTo(PAD.left, cy); ctx.lineTo(PAD.left + pw, cy); ctx.stroke();
       ctx.setLineDash([]);
       if (!offTop && !offRight) {
-        ctx.fillStyle = '#c62828';
+        ctx.fillStyle = '#b91c1c';
         ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI); ctx.fill();
         ctx.fillStyle = '#fff';
         ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, 2 * Math.PI); ctx.fill();
       } else {
-        ctx.fillStyle = '#c62828';
+        ctx.fillStyle = '#b91c1c';
         ctx.beginPath();
         ctx.moveTo(cx, PAD.top + 5); ctx.lineTo(cx - 5, PAD.top + 12); ctx.lineTo(cx + 5, PAD.top + 12);
         ctx.closePath(); ctx.fill();
@@ -1473,18 +1883,18 @@
       if (lbl) {
         const lx = cx > PAD.left + pw * 0.55 ? cx - 8 : cx + 8;
         const lya = offTop ? PAD.top + 17 : cy - 9;
-        ctx.fillStyle = '#c62828'; ctx.font = 'bold 9px sans-serif';
+        ctx.fillStyle = '#b91c1c'; ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = cx > PAD.left + pw * 0.55 ? 'right' : 'left';
         ctx.fillText(lbl, lx, lya);
       }
     }
 
     // Title
-    ctx.fillStyle = '#1565c0'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#111'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText(cfg.title, PAD.left + pw / 2, 18);
 
     // Axis labels
-    ctx.fillStyle = '#666'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#666666'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText(cfg.xLabel, PAD.left + pw / 2, H - 4);
     ctx.save();
     ctx.translate(10, PAD.top + ph / 2); ctx.rotate(-Math.PI / 2);
@@ -1498,7 +1908,7 @@
     const stdW = [200, 300, 450, 600, 750, 900];
     const curW = Math.round(bG_m * 1000);
     if (!stdW.includes(curW)) { stdW.push(curW); stdW.sort((a, b) => a - b); }
-    const clrs = ['#7b1fa2','#1565c0','#00838f','#2e7d32','#ef6c00','#c62828','#37474f','#ad1457','#5d4037'];
+    const clrs = ['#111111','#444444','#777777','#999999','#bbbbbb','#555555','#333333','#aaaaaa','#666666'];
     const curves = stdW.map((w, i) => {
       const pts = [[0, 30]];
       for (let q = 0.1; q <= 16.3; q += 0.2) {
@@ -1559,7 +1969,7 @@
   function cfgH6a(Qout, loc_mm, bG_m) {
     const wsm = [0.200, 0.300, 0.450, 0.600, 0.750];
     if (!wsm.some(w => Math.abs(w - bG_m) < 0.005)) { wsm.push(bG_m); wsm.sort((a, b) => a - b); }
-    const clrs = ['#7b1fa2','#1565c0','#00838f','#2e7d32','#ef6c00','#c62828'];
+    const clrs = ['#111111','#444444','#777777','#999999','#bbbbbb','#555555'];
     const curves = wsm.map((w, i) => {
       const pts = [[0, 0]];
       for (let q = 0.1; q <= 16.3; q += 0.2) {
@@ -1581,7 +1991,7 @@
   function cfgH6b(Qout, doc_mm, woc_m) {
     const wocs = [0.200, 0.300, 0.450];
     if (!wocs.some(w => Math.abs(w - woc_m) < 0.005)) { wocs.push(woc_m); wocs.sort((a, b) => a - b); }
-    const clrs = ['#1565c0','#00838f','#2e7d32','#ef6c00'];
+    const clrs = ['#333333','#666666','#999999','#bbbbbb'];
     const curves = wocs.map((w, i) => {
       const pts = [[0, 0]];
       for (let q = 0.1; q <= 16.3; q += 0.2) {
@@ -1613,7 +2023,7 @@
       title: 'Fig H.8 — Min Gutter Height ht (Method 3)',
       xLabel: 'Q / wbg  (L/s per m)', yLabel: 'ht (mm)',
       xMax: xM, yMax: 300, xTicks: 8, yTicks: 6,
-      curves: [{ label: 'Fig H.8 eqn', color: '#1565c0', pts, id: 'ht' }],
+      curves: [{ label: 'Fig H.8 eqn', color: '#333333', pts, id: 'ht' }],
       highlightCurve: 'ht',
       point: { x: Qout / bG_m, y: ht_mm, label: `${Math.round(ht_mm)} mm` }
     };
@@ -1645,9 +2055,20 @@
 
   /* ── RESET ───────────────────────────────────────────────────── */
   function handleReset() {
+    const hasResults = $('metrics-strip').style.display !== 'none';
+    const hasInput = $('project-name').value || $('catchment-area').value || $('job-number').value;
+    if ((hasResults || hasInput) && !confirm('Reset all inputs and clear results?')) return;
     ['project-name','job-number','designer','catchment-area',
      'gutter-width','slope-manual','intensity'].forEach(id => { const e = $(id); if (e) e.value = ''; });
     $('location').value        = 'Sydney';
+    $('loc-lat').value         = '-33.8688';
+    $('loc-lng').value         = '151.2093';
+    $('loc-search').value      = '';
+    $('loc-coords-display').textContent = 'Sydney (\u221233.8688, 151.2093)';
+    $('loc-nearest-city').textContent   = 'Nearest reference city: Sydney';
+    if (locMap && locMarker) {
+      setMapLocation(-33.8688, 151.2093, 'Sydney', 5);
+    }
     $('ari').value             = '100';   // AS3500.3 Table 3.3.4 — 1% AEP is the required default
     $('roof-type').value       = 'metal';
     $('gutter-material').value = 'zincalume';
@@ -1668,38 +2089,229 @@
 
   /* ── PRINT ───────────────────────────────────────────────────── */
   function handlePrint() {
+    // Don't print if no results have been calculated
+    if ($('metrics-strip').style.display === 'none') return;
+
     $('workings-card').setAttribute('open', '');
-    window.print();
+
+    // Convert each visible canvas to an <img> for reliable printing
+    const chartWraps = document.querySelectorAll('#charts-grid .chart-wrap');
+    const imgEls = [];
+    chartWraps.forEach(wrap => {
+      if (wrap.style.display === 'none') return;
+      const cv = wrap.querySelector('canvas');
+      if (!cv) return;
+      const img = document.createElement('img');
+      img.src = cv.toDataURL('image/png');
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      img.className = 'print-chart-img';
+      cv.style.display = 'none';
+      wrap.appendChild(img);
+      imgEls.push({ wrap, cv, img });
+    });
+
+    // Wait for all images to decode before printing
+    function restore() {
+      imgEls.forEach(({ cv, img }) => {
+        cv.style.display = '';
+        img.remove();
+      });
+    }
+    Promise.all(imgEls.map(({ img }) => img.decode ? img.decode() : Promise.resolve()))
+      .then(() => { window.print(); restore(); })
+      .catch(() => { window.print(); restore(); });
   }
 
-  /* ── BOM HINT ────────────────────────────────────────────────── */
+  /* ── BOM HINT ────────────────────────────────────────────────────── */
   function updateBomHint() {
-    const loc   = $('location').value;
-    const ari   = parseInt($('ari').value);
-    const hint  = $('intensity-hint');
-    const input = $('intensity');
-    if (loc === 'Manual') {
-      hint.textContent = 'Enter site-specific value from BOM IFD tool (bom.gov.au)';
-      input.removeAttribute('readonly'); input.placeholder = 'Enter mm/hr'; input.value = '';
+    var loc   = $('location').value;
+    var ari   = parseInt($('ari').value);
+    var hint  = $('intensity-hint');
+    var input = $('intensity');
+    var lat   = parseFloat($('loc-lat').value);
+    var lng   = parseFloat($('loc-lng').value);
+    var v     = lookupIFD(loc, ari);
+
+    input.removeAttribute('readonly');
+    if (v) {
+      input.value = v;
+      hint.innerHTML = 'Nearest city indicative: <strong>' + v + ' mm/hr</strong> (' + loc + ') &middot; Verify via BOM link for exact site value';
     } else {
-      const v = lookupIFD(loc, ari);
-      hint.textContent = `BOM IFD (indicative): ${v} mm/hr — verify at bom.gov.au`;
-      input.value = v; input.setAttribute('readonly', '');
+      input.placeholder = 'Enter mm/hr from BOM IFD';
+      hint.textContent = '5-min duration \u00b7 Use BOM link above for site-specific value';
     }
+
+    // Update BOM link with current coordinates
+    if (!isNaN(lat) && !isNaN(lng)) {
+      var bomUrl = 'https://www.bom.gov.au/water/designRainfalls/revised-ifd/?coordinate_type=dd&latitude=' + lat.toFixed(4) + '&longitude=' + lng.toFixed(4) + '&user_label=Site';
+      var bomLink = $('bom-ifd-link');
+      if (bomLink) bomLink.href = bomUrl;
+    }
+  }
+
+  function updateLocationUI(lat, lng, label) {
+    $('loc-lat').value = lat;
+    $('loc-lng').value = lng;
+    var city = nearestCity(lat, lng);
+    $('location').value = city;
+    $('loc-coords-display').textContent = (label || city) + ' (' + lat.toFixed(4) + ', ' + lng.toFixed(4) + ')';
+    $('loc-nearest-city').textContent = 'Nearest reference city: ' + city;
+    updateBomHint();
   }
 
   function debounce(fn, ms) {
     let t; return function () { clearTimeout(t); t = setTimeout(() => fn.apply(this, arguments), ms); };
   }
 
-  /* ── INIT ────────────────────────────────────────────────────── */
+  /* ── MAP & GEOCODING ───────────────────────────────────────────────── */
+  var locMap = null;
+  var locMarker = null;
+
+  function initMap() {
+    locMap = L.map('loc-map', {
+      center: [-33.8688, 151.2093],
+      zoom: 5,
+      scrollWheelZoom: true,
+      attributionControl: true
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(locMap);
+
+    locMarker = L.marker([-33.8688, 151.2093], { draggable: true }).addTo(locMap);
+    locMarker.bindPopup('Sydney').openPopup();
+
+    locMarker.on('dragend', function () {
+      var pos = locMarker.getLatLng();
+      reverseGeocode(pos.lat, pos.lng);
+    });
+
+    locMap.on('click', function (e) {
+      locMarker.setLatLng(e.latlng);
+      reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
+  }
+
+  function setMapLocation(lat, lng, label, zoom) {
+    if (!locMap) return;
+    locMarker.setLatLng([lat, lng]);
+    locMap.setView([lat, lng], zoom || 12);
+    locMarker.bindPopup(label || '').openPopup();
+    updateLocationUI(lat, lng, label);
+  }
+
+  function reverseGeocode(lat, lng) {
+    updateLocationUI(lat, lng, lat.toFixed(4) + ', ' + lng.toFixed(4));
+    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&zoom=14&addressdetails=1', {
+      headers: { 'Accept-Language': 'en' }
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data && data.address) {
+        var a = data.address;
+        var lbl = a.suburb || a.town || a.city || a.village || a.county || a.state || 'Selected location';
+        updateLocationUI(lat, lng, lbl);
+        locMarker.bindPopup(lbl).openPopup();
+      }
+    })
+    .catch(function () {});
+  }
+
+  function setupGeocoding() {
+    var searchInput = $('loc-search');
+    var sugBox = $('loc-suggestions');
+    var abortCtrl = null;
+
+    var doSearch = debounce(function () {
+      var q = searchInput.value.trim();
+      if (q.length < 3) { sugBox.classList.remove('open'); return; }
+
+      // Check if user typed coordinates like "-33.86, 151.20"
+      var coordMatch = q.match(/^(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)$/);
+      if (coordMatch) {
+        var clat = parseFloat(coordMatch[1]);
+        var clng = parseFloat(coordMatch[2]);
+        if (clat >= -90 && clat <= 90 && clng >= -180 && clng <= 180) {
+          sugBox.classList.remove('open');
+          setMapLocation(clat, clng, clat.toFixed(4) + ', ' + clng.toFixed(4), 14);
+          return;
+        }
+      }
+
+      if (abortCtrl) abortCtrl.abort();
+      abortCtrl = new AbortController();
+
+      fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&countrycodes=au&limit=6&addressdetails=1', {
+        signal: abortCtrl.signal,
+        headers: { 'Accept-Language': 'en' }
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (results) {
+        sugBox.innerHTML = '';
+        if (!results.length) {
+          sugBox.innerHTML = '<div class="loc-sug-item" style="color:var(--slate-400)">No results found</div>';
+          sugBox.classList.add('open');
+          return;
+        }
+        results.forEach(function (r) {
+          var div = document.createElement('div');
+          div.className = 'loc-sug-item';
+          div.textContent = r.display_name;
+          div.addEventListener('click', function () {
+            var rlat = parseFloat(r.lat);
+            var rlng = parseFloat(r.lon);
+            var rlabel = r.address
+              ? (r.address.suburb || r.address.town || r.address.city || r.address.village || r.display_name.split(',')[0])
+              : r.display_name.split(',')[0];
+            searchInput.value = rlabel;
+            sugBox.classList.remove('open');
+            setMapLocation(rlat, rlng, rlabel, 14);
+          });
+          sugBox.appendChild(div);
+        });
+        sugBox.classList.add('open');
+      })
+      .catch(function (e) { if (e.name !== 'AbortError') sugBox.classList.remove('open'); });
+    }, 350);
+
+    searchInput.addEventListener('input', doSearch);
+    searchInput.addEventListener('focus', function () {
+      if (sugBox.children.length > 0 && searchInput.value.trim().length >= 3) sugBox.classList.add('open');
+    });
+    document.addEventListener('click', function (e) {
+      if (!searchInput.contains(e.target) && !sugBox.contains(e.target)) sugBox.classList.remove('open');
+    });
+
+    // Geolocation button
+    $('loc-geolocate').addEventListener('click', function () {
+      if (!navigator.geolocation) { alert('Geolocation is not supported by your browser.'); return; }
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          var glat = pos.coords.latitude;
+          var glng = pos.coords.longitude;
+          setMapLocation(glat, glng, 'My Location', 14);
+          reverseGeocode(glat, glng);
+          searchInput.value = '';
+        },
+        function () { alert('Unable to get your location. Please allow location access or search manually.'); }
+      );
+    });
+  }
+
+  /* ── INIT ────────────────────────────────────────────────────────── */
   function init() {
     $('calc-date').value = new Date().toLocaleDateString('en-AU');
 
     $('gutter-slope').addEventListener('change', function () {
       $('slope-manual-group').style.display = this.value === 'manual' ? '' : 'none';
     });
-    $('location').addEventListener('change', updateBomHint);
+
+    // Initialize map and geocoding
+    initMap();
+    setupGeocoding();
+
     $('ari').addEventListener('change', updateBomHint);
     updateBomHint();
 
@@ -1715,7 +2327,7 @@
     });
     updateMethodUI();
 
-    ['location','ari','intensity','catchment-area','roof-type','gutter-material',
+    ['ari','intensity','catchment-area','roof-type','gutter-material',
      'gutter-slope','slope-manual','num-outlets','gutter-width','building-type',
      'dp-size','woc-size','m1','m2','m3'].forEach(id => {
       const el = $(id);
@@ -1723,7 +2335,6 @@
     });
   }
 
-  window.handleCalculate = handleCalculate;
   window.handleReset     = handleReset;
   window.handlePrint     = handlePrint;
 
