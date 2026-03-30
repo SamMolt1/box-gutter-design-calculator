@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Box Gutter Calculator — AS/NZS 3500.3</title>
+  <style>
+    /* ── Variables ─────────────────────────────────────────────── */
+    :root {
+      --blue:       #1565c0;
+      --blue-dark:  #0d3e80;
+      --blue-mid:   #1976d2;
+      --blue-light: #e3f0fb;
+      --green:      #2e7d32;
+      --green-bg:   #e8f5e9;
+      --red:        #c62828;
+      --red-bg:     #ffebee;
+      --orange:     #e65100;
+      --orange-bg:  #fff3e0;
+      --grey-bg:    #f4f6f9;
+      --grey-line:  #dde2ea;
+      --text:       #1a2035;
+      --text-2:     #5a6478;
+      --white:      #ffffff;
+      --card-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      --card-radius: 12px;
+      --mono: 'Courier New', Courier, monospace;
+    }
+
+    /* ── Reset ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+      background: var(--grey-bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+
+    /* ── App Shell ──────────────────────────────────────────────── */
+    #app {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1rem 2rem;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    #app-header {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 100%);
+      color: #fff;
+      padding: 1.25rem 1.5rem;
+      margin: 0 -1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .header-left { display: flex; align-items: center; gap: 0.85rem; }
+    .header-icon {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; flex-shrink: 0;
+    }
+    #app-header h1 { font-size: 1.15rem; font-weight: 700; line-height: 1.25; }
+    #app-header h1 small {
+      display: block; font-size: 0.78rem;
+      font-weight: 400; opacity: 0.8; margin-top: 2px;
+    }
+    .std-pill {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      color: #fff; padding: 0.3rem 0.85rem;
+      border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+      white-space: nowrap; letter-spacing: 0.03em;
+    }
+
+    /* ── Two-column layout ──────────────────────────────────────── */
+    #layout {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      #layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ──────────────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 0.75rem 1.1rem;
+      border-bottom: 1px solid var(--grey-line);
+      display: flex; align-items: center; gap: 0.55rem;
+    }
+    .card-header h2 {
+      font-size: 0.82rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--blue);
+    }
+    .card-header .ch-icon { font-size: 1.05rem; }
+    .card-body { padding: 1rem 1.1rem; }
+
+    /* ── Form Elements ──────────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+    .form-grid.cols-1 { grid-template-columns: 1fr; }
+    .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .fg { display: flex; flex-direction: column; gap: 4px; }
+    .fg.span2 { grid-column: span 2; }
+    label {
+      font-size: 0.76rem; font-weight: 600;
+      color: var(--text-2); letter-spacing: 0.01em;
+    }
+    input[type="text"], input[type="number"], select {
+      border: 1.5px solid var(--grey-line);
+      border-radius: 7px;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--text);
+      background: #fff;
+      width: 100%;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none; appearance: none;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--blue-mid);
+      box-shadow: 0 0 0 3px rgba(25,118,210,0.12);
+    }
+    input[readonly] {
+      background: var(--grey-bg);
+      color: var(--text-2);
+      cursor: default;
+      border-color: var(--grey-line);
+    }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6478' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.65rem center; padding-right: 2rem; }
+    .field-hint  { font-size: 0.7rem; color: var(--text-2); }
+    .field-error { font-size: 0.7rem; color: var(--red); min-height: 0.95rem; }
+
+    /* Segment control (method picker) */
+    .seg-ctrl {
+      display: flex;
+      border: 1.5px solid var(--grey-line);
+      border-radius: 7px;
+      overflow: hidden;
+    }
+    .seg-ctrl input[type="radio"] { display: none; }
+    .seg-ctrl label {
+      flex: 1; text-align: center;
+      padding: 0.42rem 0.25rem;
+      font-size: 0.78rem; font-weight: 600;
+      color: var(--text-2);
+      cursor: pointer;
+      border-right: 1px solid var(--grey-line);
+      transition: background 0.12s, color 0.12s;
+      letter-spacing: 0;
+    }
+    .seg-ctrl label:last-of-type { border-right: none; }
+    .seg-ctrl input[type="radio"]:checked + label {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    /* Divider between form sections */
+    .form-sep {
+      border: none; border-top: 1px solid var(--grey-line);
+      margin: 0.85rem 0;
+    }
+
+    /* ── Action buttons ─────────────────────────────────────────── */
+    .action-bar {
+      display: flex; gap: 0.6rem; margin-top: 0.9rem; flex-wrap: wrap;
+    }
+    .btn {
+      padding: 0.6rem 1.3rem;
+      border: none; border-radius: 8px;
+      font-size: 0.88rem; font-family: inherit;
+      font-weight: 600; cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-calc  { background: var(--blue); color: #fff; flex: 1; justify-content: center; }
+    .btn-calc:hover { background: var(--blue-dark); box-shadow: 0 4px 12px rgba(21,101,192,0.35); }
+    .btn-reset { background: var(--grey-line); color: var(--text); }
+    .btn-print { background: #37474f; color: #fff; }
+    .btn-print:hover { background: #263238; }
+
+    /* ── Results Panel ──────────────────────────────────────────── */
+    #results-col { display: flex; flex-direction: column; gap: 1rem; }
+
+    /* Placeholder state */
+    #placeholder {
+      background: var(--white);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      padding: 3.5rem 2rem;
+      text-align: center;
+      color: var(--text-2);
+    }
+    #placeholder .ph-icon { font-size: 3.5rem; margin-bottom: 0.75rem; }
+    #placeholder p { font-size: 0.92rem; max-width: 280px; margin: 0 auto; }
+
+    /* ── Key Metrics Strip ──────────────────────────────────────── */
+    #metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+    @media (max-width: 700px) {
+      #metrics-strip { grid-template-columns: 1fr 1fr; }
+    }
+    .metric-card {
+      background: var(--white);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      padding: 1rem;
+      display: flex; flex-direction: column; gap: 4px;
+      border-top: 3px solid var(--blue);
+      transition: box-shadow 0.15s;
+    }
+    .metric-card.pass { border-top-color: var(--green); }
+    .metric-card.fail { border-top-color: var(--red); }
+    .metric-card.warn { border-top-color: var(--orange); }
+    .metric-icon { font-size: 1.4rem; margin-bottom: 2px; }
+    .metric-label { font-size: 0.7rem; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; }
+    .metric-value { font-size: 1.35rem; font-weight: 800; color: var(--text); line-height: 1.1; }
+    .metric-sub   { font-size: 0.72rem; color: var(--text-2); }
+
+    /* ── Warnings ───────────────────────────────────────────────── */
+    #warn-card {
+      background: #fff8e1;
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      border-left: 4px solid #f9a825;
+      padding: 0.85rem 1rem;
+    }
+    #warn-card h4 { font-size: 0.8rem; font-weight: 700; color: var(--orange); margin-bottom: 0.4rem; }
+    #warn-card ul { padding-left: 1.1rem; font-size: 0.8rem; color: #6d3a00; }
+    #warn-card li { margin-bottom: 0.25rem; }
+
+    /* ── Detail Tables ──────────────────────────────────────────── */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+    @media (max-width: 700px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+    .detail-card {
+      background: var(--white);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+    }
+    .dc-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 0.9rem;
+      background: var(--blue-light);
+      border-bottom: 1px solid #c5d9ee;
+    }
+    .dc-title { font-size: 0.78rem; font-weight: 700; color: var(--blue-dark); display: flex; align-items: center; gap: 0.4rem; }
+    .clause-tag {
+      font-size: 0.67rem; background: var(--blue); color: #fff;
+      padding: 1px 7px; border-radius: 10px; font-weight: 600;
+    }
+    .dc-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .dc-table td { padding: 0.38rem 0.75rem; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+    .dc-table tr:last-child td { border-bottom: none; }
+    .dc-table .lbl { color: var(--text-2); }
+    .dc-table .val { font-weight: 700; text-align: right; }
+    .dc-table .sta { width: 54px; text-align: center; }
+    .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; }
+    .badge-pass { background: var(--green-bg); color: var(--green); }
+    .badge-fail { background: var(--red-bg); color: var(--red); }
+    .badge-warn { background: var(--orange-bg); color: var(--orange); }
+
+    /* highlight rows with status */
+    tr[data-s="pass"] { background: var(--green-bg); }
+    tr[data-s="fail"] { background: var(--red-bg); }
+    tr[data-s="warn"] { background: var(--orange-bg); }
+
+    /* ── Compliance Summary Card ────────────────────────────────── */
+    #compliance-card {
+      background: var(--white);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+    }
+    .comp-header {
+      padding: 0.65rem 1rem;
+      background: var(--blue);
+      color: #fff;
+      font-size: 0.82rem; font-weight: 700;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    #comp-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    #comp-table td { padding: 0.4rem 1rem; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+    #comp-table tr:last-child td { border-bottom: none; }
+    #comp-table .val { font-weight: 700; text-align: right; }
+
+    /* ── Formula Workings ───────────────────────────────────────── */
+    #workings-card {
+      background: var(--white);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+    }
+    #workings-card summary {
+      list-style: none;
+      padding: 0.7rem 1rem;
+      background: var(--grey-bg);
+      border-bottom: 1px solid var(--grey-line);
+      font-size: 0.8rem; font-weight: 700;
+      color: var(--text-2); cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #workings-card summary::-webkit-details-marker { display: none; }
+    #workings-card summary .toggle-hint { font-weight: 400; font-size: 0.72rem; }
+    #workings-card[open] summary .toggle-hint { content: ''; }
+    #formula-content {
+      padding: 1rem;
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      line-height: 1.75;
+      color: var(--text);
+      white-space: pre-wrap;
+      background: #fafbfc;
+      border-top: 1px solid var(--grey-line);
+    }
+
+    /* ── Charts ─────────────────────────────────────────────────── */
+    #charts-panel { margin-top: 0; }
+    #charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+    @media (max-width: 700px) {
+      #charts-grid { grid-template-columns: 1fr; }
+    }
+    .chart-wrap {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid var(--grey-line);
+      overflow: hidden;
+    }
+    .chart-wrap canvas { display: block; width: 100%; height: auto; }
+    @media print { #charts-panel { display: none !important; } }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    #app-footer {
+      margin-top: 1.5rem;
+      padding: 0.85rem 1.1rem;
+      background: var(--white);
+      border-radius: 8px;
+      box-shadow: var(--card-shadow);
+      font-size: 0.73rem;
+      color: var(--text-2);
+      line-height: 1.55;
+    }
+    #app-footer strong { color: var(--text); }
+
+    /* ── Fade-in animation ──────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fadein { animation: fadeUp 0.25s ease both; }
+
+    /* ── Print styles ───────────────────────────────────────────── */
+    #print-header { display: none; }
+    @media print {
+      body { font-size: 9pt; background: #fff; }
+      #app { padding: 0; }
+      #app-header, #input-col, #app-footer, .action-bar, .btn-print { display: none !important; }
+      #results-col { display: block; }
+      #layout { display: block; }
+      #metrics-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.5rem; margin-bottom: 0.75rem; }
+      .detail-grid { display: grid; grid-template-columns: 1fr 1fr; }
+      .card, .metric-card, .detail-card, #compliance-card, #workings-card, #warn-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+      #workings-card[open] #formula-content, #formula-content { display: block !important; }
+      #print-header { display: block !important; margin-bottom: 1rem; font-size: 9pt; }
+      #print-header table { width: 100%; border-collapse: collapse; }
+      #print-header td { border: 1px solid #999; padding: 3px 6px; }
+      #print-header .ph-title td { background: #1565c0; color: #fff; font-weight: bold; text-align: center; font-size: 11pt; }
+      @page { size: A4; margin: 14mm 12mm; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Header -->
+  <header id="app-header">
+    <div class="header-left">
+      <div class="header-icon">&#127783;</div>
+      <h1>
+        Box Gutter Design Calculator
+        <small>Stormwater Drainage &mdash; General Methods</small>
+      </h1>
+    </div>
+    <span class="std-pill">AS/NZS 3500.3</span>
+  </header>
+
+  <div id="layout">
+
+    <!-- ══ INPUT COLUMN ══════════════════════════════════════════ -->
+    <div id="input-col">
+
+      <!-- Project Info -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-header">
+          <span class="ch-icon">&#128196;</span>
+          <h2>Project Info</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="fg">
+              <label for="project-name">Project Name</label>
+              <input type="text" id="project-name" placeholder="e.g. 45 Smith St">
+            </div>
+            <div class="fg">
+              <label for="job-number">Job Number</label>
+              <input type="text" id="job-number" placeholder="e.g. 2024-001">
+            </div>
+            <div class="fg">
+              <label for="designer">Designer</label>
+              <input type="text" id="designer" placeholder="Name">
+            </div>
+            <div class="fg">
+              <label for="calc-date">Date</label>
+              <input type="text" id="calc-date">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Site & Rainfall -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-header">
+          <span class="ch-icon">&#127783;</span>
+          <h2>Site &amp; Rainfall</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="fg">
+              <label for="location">Location</label>
+              <select id="location">
+                <option value="Sydney">Sydney</option>
+                <option value="Melbourne">Melbourne</option>
+                <option value="Brisbane">Brisbane</option>
+                <option value="Perth">Perth</option>
+                <option value="Adelaide">Adelaide</option>
+                <option value="Darwin">Darwin</option>
+                <option value="Hobart">Hobart</option>
+                <option value="Canberra">Canberra</option>
+                <option value="Manual">&#9998; Manual Entry</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="ari">Annual Recurrence Interval</label>
+              <select id="ari">
+                <option value="1">1-year ARI</option>
+                <option value="2">2-year ARI</option>
+                <option value="5">5-year ARI</option>
+                <option value="10">10-year ARI</option>
+                <option value="20">20-year ARI</option>
+                <option value="50">50-year ARI</option>
+                <option value="100" selected>100-year ARI (1% AEP — required for box gutters)</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="intensity">Rainfall Intensity (mm/hr)</label>
+              <input type="number" id="intensity" min="1" step="1" placeholder="Auto from BOM IFD">
+              <span class="field-hint" id="intensity-hint">5-min duration · BOM IFD</span>
+              <span class="field-error" id="intensity-error"></span>
+            </div>
+            <div class="fg">
+              <label for="catchment-area">Catchment Area (m²)</label>
+              <input type="number" id="catchment-area" min="1" step="1" placeholder="e.g. 250">
+              <span class="field-error" id="area-error"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roof & Gutter -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-header">
+          <span class="ch-icon">&#127968;</span>
+          <h2>Roof &amp; Gutter</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="fg">
+              <label for="roof-type">Roof Surface</label>
+              <select id="roof-type">
+                <option value="metal">Metal / Colorbond</option>
+                <option value="tile">Tile / Concrete</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="gutter-material">Gutter Material</label>
+              <select id="gutter-material">
+                <option value="zincalume">Zincalume / Colorbond</option>
+                <option value="copper">Copper</option>
+                <option value="pvc">PVC</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="gutter-slope">Gutter Slope</label>
+              <select id="gutter-slope">
+                <option value="0.025">1 : 40 &nbsp;(25 mm/m)</option>
+                <option value="0.0125">1 : 80 &nbsp;(12.5 mm/m)</option>
+                <option value="0.010">1 : 100 &nbsp;(10 mm/m)</option>
+                <option value="0.005" selected>1 : 200 &nbsp;(5 mm/m)</option>
+                <option value="manual">&#9998; Manual entry</option>
+              </select>
+            </div>
+            <div class="fg" id="slope-manual-group" style="display:none">
+              <label for="slope-manual">Custom Slope (1 : X)</label>
+              <input type="number" id="slope-manual" min="1" step="1" placeholder="e.g. 150">
+              <span class="field-hint">Enter denominator</span>
+              <span class="field-error" id="slope-error"></span>
+            </div>
+            <div class="fg">
+              <label for="num-outlets">Number of Outlets</label>
+              <input type="number" id="num-outlets" min="1" max="20" step="1" value="1">
+              <span class="field-error" id="outlets-error"></span>
+            </div>
+            <div class="fg">
+              <label for="building-type">Building Type</label>
+              <select id="building-type">
+                <option value="domestic">Domestic &nbsp;(min 200mm)</option>
+                <option value="commercial">Commercial &nbsp;(min 300mm)</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="gutter-width">Target Gutter Width (mm)</label>
+              <input type="number" id="gutter-width" min="100" max="2000" step="25" placeholder="Auto — minimum">
+              <span class="field-hint">Leave blank for minimum width</span>
+              <span class="field-error" id="width-error"></span>
+            </div>
+            <div class="fg">
+              <label for="dp-size">Downpipe Size (Fig H.4)</label>
+              <select id="dp-size">
+                <option value="auto">Auto (minimum compliant)</option>
+                <option value="90dia">DN90 &nbsp;⌀90 mm</option>
+                <option value="100x75">100 × 75 mm rect.</option>
+                <option value="100dia">DN100 &nbsp;⌀100 mm</option>
+                <option value="100x100">100 × 100 mm rect.</option>
+                <option value="125dia">DN125 &nbsp;⌀125 mm</option>
+                <option value="140dia">DN140 &nbsp;⌀140 mm</option>
+                <option value="125x125">125 × 125 mm rect.</option>
+                <option value="150dia">DN150 &nbsp;⌀150 mm</option>
+                <option value="150x150">150 × 150 mm rect.</option>
+              </select>
+              <span class="field-hint">Min. DN90 or 100×50 rect. (Cl. 3.7.8) · capacity varies with sump depth</span>
+            </div>
+            <div class="fg" id="woc-group" style="display:none">
+              <label for="woc-size">Overflow Channel Width — woc (Method 2)</label>
+              <select id="woc-size">
+                <option value="0.200">200 mm</option>
+                <option value="0.300" selected>300 mm</option>
+                <option value="0.450">450 mm</option>
+              </select>
+              <span class="field-hint">Wider channel → shallower overflow depth → shallower gutter</span>
+            </div>
+          </div>
+
+          <hr class="form-sep">
+
+          <!-- Method selector -->
+          <div class="fg">
+            <label>Design Method (AS3500.3)</label>
+            <div class="seg-ctrl">
+              <input type="radio" name="method" id="m1" value="1" checked>
+              <label for="m1">Method 1<br><span style="font-size:0.65rem;font-weight:400">Rainhead</span></label>
+              <input type="radio" name="method" id="m2" value="2">
+              <label for="m2">Method 2<br><span style="font-size:0.65rem;font-weight:400">Side Overflow</span></label>
+              <input type="radio" name="method" id="m3" value="3">
+              <label for="m3">Method 3<br><span style="font-size:0.65rem;font-weight:400">High-Cap. Overflow</span></label>
+            </div>
+          </div>
+
+          <div class="action-bar">
+            <button class="btn btn-calc" onclick="handleCalculate()">&#9654; Calculate</button>
+            <button class="btn btn-reset" onclick="handleReset()">&#8635; Reset</button>
+            <button class="btn btn-print" onclick="handlePrint()">&#128438; Print</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /input-col -->
+
+    <!-- ══ RESULTS COLUMN ════════════════════════════════════════ -->
+    <div id="results-col">
+
+      <!-- Print header (hidden on screen) -->
+      <div id="print-header">
+        <table>
+          <tr class="ph-title"><td colspan="4">AS/NZS 3500.3 Box Gutter Design Calculation</td></tr>
+          <tr><td><b>Project:</b></td><td id="pt-project"></td><td><b>Job No:</b></td><td id="pt-job"></td></tr>
+          <tr><td><b>Designer:</b></td><td id="pt-designer"></td><td><b>Date:</b></td><td id="pt-date"></td></tr>
+          <tr><td><b>Location:</b></td><td id="pt-location"></td><td><b>Method:</b></td><td id="pt-method"></td></tr>
+        </table>
+      </div>
+
+      <!-- Placeholder -->
+      <div id="placeholder">
+        <div class="ph-icon">&#128200;</div>
+        <p>Fill in the inputs and tap <strong>Calculate</strong> to generate your design.</p>
+      </div>
+
+      <!-- Warnings -->
+      <div id="warn-card" style="display:none">
+        <h4>&#9888;&#65039; Warnings</h4>
+        <ul id="warn-list"></ul>
+      </div>
+
+      <!-- Metric strip -->
+      <div id="metrics-strip" style="display:none">
+        <div class="metric-card" id="mc-flow">
+          <div class="metric-icon">&#128167;</div>
+          <div class="metric-label">Flow / Outlet</div>
+          <div class="metric-value" id="mv-flow">—</div>
+          <div class="metric-sub">L/s design flow</div>
+        </div>
+        <div class="metric-card" id="mc-gutter">
+          <div class="metric-icon">&#9645;</div>
+          <div class="metric-label">Gutter Size</div>
+          <div class="metric-value" id="mv-gutter">—</div>
+          <div class="metric-sub">Width × Depth</div>
+        </div>
+        <div class="metric-card" id="mc-dp">
+          <div class="metric-icon">&#11123;</div>
+          <div class="metric-label">Downpipe</div>
+          <div class="metric-value" id="mv-dp">—</div>
+          <div class="metric-sub">Nominal diameter</div>
+        </div>
+        <div class="metric-card" id="mc-sump">
+          <div class="metric-icon">&#9632;</div>
+          <div class="metric-label">Sump</div>
+          <div class="metric-value" id="mv-sump">—</div>
+          <div class="metric-sub">L × W × D</div>
+        </div>
+      </div>
+
+      <!-- Detail grid -->
+      <div id="detail-grid" class="detail-grid" style="display:none">
+
+        <!-- Rainfall & Flow -->
+        <div class="detail-card">
+          <div class="dc-header">
+            <span class="dc-title">&#127783; Rainfall &amp; Design Flow</span>
+            <span class="clause-tag">Cl. 5.4.6 / Table 3.3.4</span>
+          </div>
+          <table class="dc-table"><tbody id="tb-rainfall"></tbody></table>
+        </div>
+
+        <!-- Box Gutter -->
+        <div class="detail-card">
+          <div class="dc-header">
+            <span class="dc-title">&#9645; Box Gutter Sizing</span>
+            <span class="clause-tag">Cl. 3.7 / Fig. H.1</span>
+          </div>
+          <table class="dc-table"><tbody id="tb-gutter"></tbody></table>
+        </div>
+
+        <!-- Downpipe -->
+        <div class="detail-card">
+          <div class="dc-header">
+            <span class="dc-title">&#11123; Downpipe</span>
+            <span class="clause-tag">Cl. 3.7.8</span>
+          </div>
+          <table class="dc-table"><tbody id="tb-downpipe"></tbody></table>
+        </div>
+
+        <!-- Sump -->
+        <div class="detail-card">
+          <div class="dc-header">
+            <span class="dc-title">&#9632; Sump</span>
+            <span class="clause-tag">Cl. 3.7.4 / 3.7.6</span>
+          </div>
+          <table class="dc-table"><tbody id="tb-sump"></tbody></table>
+        </div>
+
+        <!-- Rainhead (Method 1) -->
+        <div class="detail-card" id="sec-rainhead" style="display:none">
+          <div class="dc-header">
+            <span class="dc-title">&#9652; Rainhead</span>
+            <span class="clause-tag">Cl. 3.7.5 / Fig. H.3</span>
+          </div>
+          <table class="dc-table"><tbody id="tb-rainhead"></tbody></table>
+        </div>
+
+      </div><!-- /detail-grid -->
+
+      <!-- Compliance Summary -->
+      <div id="compliance-card" style="display:none">
+        <div class="comp-header">&#10003; Compliance Summary &mdash; AS/NZS 3500.3</div>
+        <table id="comp-table">
+          <tbody id="tb-compliance"></tbody>
+        </table>
+      </div>
+
+      <!-- Formula workings -->
+      <details id="workings-card" style="display:none">
+        <summary>
+          &#128196; Calculation Workings
+          <span class="toggle-hint">Click to expand / collapse</span>
+        </summary>
+        <div id="formula-content"></div>
+      </details>
+
+      <!-- Design Charts -->
+      <div id="charts-panel" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="ch-icon">&#128200;</span>
+            <h2>Design Charts &mdash; AS/NZS 3500.3 Appendix H</h2>
+          </div>
+          <div class="card-body" style="padding:0.75rem">
+            <div id="charts-grid">
+              <div class="chart-wrap">
+                <canvas id="ch-h1" width="400" height="272"></canvas>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="ch-h4" width="400" height="272"></canvas>
+              </div>
+              <div class="chart-wrap" id="cw-h3" style="display:none">
+                <canvas id="ch-h3" width="400" height="272"></canvas>
+              </div>
+              <div class="chart-wrap" id="cw-h6a" style="display:none">
+                <canvas id="ch-h6a" width="400" height="272"></canvas>
+              </div>
+              <div class="chart-wrap" id="cw-h6b" style="display:none">
+                <canvas id="ch-h6b" width="400" height="272"></canvas>
+              </div>
+              <div class="chart-wrap" id="cw-h8" style="display:none">
+                <canvas id="ch-h8" width="400" height="272"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /results-col -->
+  </div><!-- /layout -->
+
+  <!-- Footer disclaimer -->
+  <div id="app-footer">
+    <strong>Disclaimer:</strong> This calculator is a design aid only. Rainfall intensity values are indicative, based on approximate BOM IFD data for 5-minute durations at the nominated city. Verify intensities for your specific site using the Bureau of Meteorology IFD tool (bom.gov.au). All designs must be checked by a suitably qualified engineer and must comply with the current edition of AS/NZS 3500.3 and applicable authority requirements.
+  </div>
+
+</div><!-- /app -->
+
+<!-- ================================================================
+     JAVASCRIPT
+================================================================ -->
+<script>
+(function () {
+  'use strict';
+
+  /* ── DATA TABLES ─────────────────────────────────────────────── */
+
+  // Indicative BOM IFD 5-minute intensities (mm/hr) — verify at bom.gov.au
+  // ARIs: [1yr, 2yr, 5yr, 10yr, 20yr, 50yr, 100yr]
+  const IFD = {
+    Sydney:    [90,  110, 140, 165, 190, 235, 275],
+    Melbourne: [55,   70,  90, 110, 130, 160, 185],
+    Brisbane:  [100, 125, 165, 195, 230, 285, 330],
+    Perth:     [60,   75, 100, 120, 145, 180, 215],
+    Adelaide:  [50,   65,  85, 105, 125, 155, 180],
+    Darwin:    [145, 175, 220, 255, 295, 355, 405],
+    Hobart:    [45,   55,  70,  85, 100, 125, 145],
+    Canberra:  [60,   75,  95, 115, 135, 165, 195]
+  };
+  const ARI_IDX = {1:0, 2:1, 5:2, 10:3, 20:4, 50:5, 100:6};
+
+  const MIN_WIDTH = { domestic:0.200, commercial:0.300 };
+
+  // AS3500.3 Cl.3.7.3 — gutter slope must be between 1:40 and 1:200
+  const SLOPE_MIN = 1 / 200;
+  const SLOPE_MAX = 1 / 40;
+
+  // AS3500.3 Cl.3.7.2 — freeboard is fixed at 30 mm
+  const FREEBOARD = 0.030;
+
+  // Downpipe cross-sectional areas (m²) — all sizes shown in Figure H.4
+  // Cl.3.7.8: minimum DN90 round or 100×50 rect.
+  const DOWNPIPES = [
+    { id:'90dia',   label:'DN90 (⌀90)',        area: Math.PI/4*0.090**2 },
+    { id:'100x75',  label:'100×75 rect.',       area: 0.100*0.075        },
+    { id:'100dia',  label:'DN100 (⌀100)',       area: Math.PI/4*0.100**2 },
+    { id:'100x100', label:'100×100 rect.',      area: 0.100*0.100        },
+    { id:'125dia',  label:'DN125 (⌀125)',       area: Math.PI/4*0.125**2 },
+    { id:'140dia',  label:'DN140 (⌀140)',       area: Math.PI/4*0.140**2 },
+    { id:'125x125', label:'125×125 rect.',      area: 0.125*0.125        },
+    { id:'150dia',  label:'DN150 (⌀150)',       area: Math.PI/4*0.150**2 },
+    { id:'150x150', label:'150×150 rect.',      area: 0.150*0.150        },
+  ];
+
+  // Fig H.4 max sump depth on graph
+  const HS_MAX = 0.300;
+
+  /* ── HYDRAULIC CALCULATIONS ──────────────────────────────────── */
+
+  function lookupIFD(loc, ari) {
+    return IFD[loc] ? IFD[loc][ARI_IDX[parseInt(ari)]] : null;
+  }
+
+  // Design flow — Rational Method, AS/NZS 3500.3 Cl.5.4.6
+  // Q (L/s) = Cr × I5 × Ac / 3600   Cr = 1.0 for all roof surfaces
+  function designFlow(I, A) { return I * A / 3600; }
+
+  // Box gutter water depth — Figure H.1 calibrated power-law formula
+  // Assumes 1:200 slope (flattest permitted, most conservative per Fig H.1).
+  // For steeper slopes Figure H.1 gives shallower depths, so this is safe for all slopes.
+  //
+  // Calibrated from three AS/NZS 3500.3:2025 Appendix I worked-example data points:
+  //   Q=15 L/s, w=450 mm, 1:200 → ha_total=140 mm → h_water=110 mm (Ex.1, Fig H.1)
+  //   Q=8.5 L/s, w=600 mm, 1:200 → ha_total=105 mm → h_water= 75 mm (Ex.3, Table I.1)
+  //   Q=6.5 L/s, w=600 mm, 1:200 → ha_total= 98 mm → h_water= 68 mm (Ex.3, Table I.1)
+  //
+  // Fitted formula: h_water_mm = 491 × (Q_Ls / w_mm)^0.44
+  // Errors vs standard: 0%, 0.7%, 1.5% respectively — within graphical read accuracy.
+  //
+  // NOTE: ha in the standard = TOTAL gutter depth (water + 30mm freeboard) from Fig H.1.
+  //       This function returns WATER DEPTH only. Add FREEBOARD (30mm) for gutter depth.
+  function gutterWaterDepth(Q_Ls, b_m) {
+    return 0.491 * Math.pow(Q_Ls / (b_m * 1000), 0.44);  // returns metres (water only)
+  }
+
+  // Inverse: gutter capacity at a given water depth
+  function gutterCapacity(b_m, h_water_m) {
+    return (b_m * 1000) * Math.pow((h_water_m * 1000) / 491, 1 / 0.44);  // L/s
+  }
+
+  function autoGutterSize(Q_Ls, minW) {
+    for (let b = minW; b <= 2.0; b += 0.025) {
+      const ha = gutterWaterDepth(Q_Ls, b);
+      const d_total = ha + FREEBOARD;
+      if (d_total / b <= 0.75) return { b, ha, d_total };
+    }
+    return null;
+  }
+
+  // ── Sump depth — Figure H.4 orifice equation ──────────────────
+  // Calibrated Cd = 0.44 from Fig H.4 worked examples:
+  //   Ex.2 & Ex.3: Q=16 L/s, DN150 → hs = 217–220 mm ✓
+  // hs = Q² / [2g × (Cd × A)²]
+  const CD_SUMP = 0.44;
+  function sumpDepth_m(Q_Ls, pipeArea_m2) {
+    const Q = Q_Ls / 1000;
+    return Q**2 / (2 * 9.81 * (CD_SUMP * pipeArea_m2)**2);
+  }
+
+  // Select/validate downpipe using orifice sump depth (Fig H.4)
+  // Returns { dp object, hs, adequate, forced }
+  function selectDP(Q_Ls, forceId) {
+    if (forceId && forceId !== 'auto') {
+      const dp = DOWNPIPES.find(d => d.id === forceId);
+      if (!dp) return null;
+      const hs = sumpDepth_m(Q_Ls, dp.area);
+      return { ...dp, hs, adequate: hs <= HS_MAX, forced: true };
+    }
+    // Auto: pick smallest pipe where hs ≤ HS_MAX at this flow
+    for (const dp of DOWNPIPES) {
+      const hs = sumpDepth_m(Q_Ls, dp.area);
+      if (hs <= HS_MAX) return { ...dp, hs: Math.max(hs, 0.150), adequate: true, forced: false };
+    }
+    // Fallback: DN150×150 rect (largest)
+    const dp = DOWNPIPES[DOWNPIPES.length - 1];
+    return { ...dp, hs: HS_MAX, adequate: false, forced: false };
+  }
+
+  // ── Rainhead — Figure H.3 orifice equation ────────────────────
+  // The rainhead downpipe handles the full design flow Qout.
+  // Calibrated Cd = 0.60 from Fig H.3 worked examples:
+  //   Ex.1: Q=15 L/s, 150×100 rect → hw=144 mm (calc 142 mm, 1% err) ✓
+  //   Ex.1: Q=15 L/s, DN125      → hw=207 mm (calc 212 mm, 2% err) ✓
+  //   Ex.1: ha_total=140 mm → lr=185 mm (calc 185 mm) ✓
+  //
+  // hw = Q² / [2g × (Cd × A)²]    hr = 1.67 × hw    lr_mm = 1.054 × h_water_mm^1.1
+  // Note Fig H.2 Note 1: hr ≥ 1.25 × pipe external dia (approx. pipe nominal + 10mm)
+  const CD_RH = 0.60;
+  function rainheadDims(bG, h_water_m, dpObj, Qout_Ls) {
+    const Q   = Qout_Ls / 1000;  // m³/s — design flow to this outlet
+    const hw  = Q**2 / (2 * 9.81 * (CD_RH * dpObj.area)**2);
+    const hr  = 1.67 * hw;
+    // lr from Figure H.3 using WATER depth (ha - freeboard), min 200mm
+    const lr  = Math.max(0.200, 1.054 * Math.pow(h_water_m * 1000, 1.1) / 1000);
+    const frontA = bG * hr;
+    const minA   = 1.5 * dpObj.area;
+    return { w: bG, hw, hr, lr, frontA, minA, openOk: frontA >= minA };
+  }
+
+  // ── Overflow loc (weir crest / channel offset) — Figure H.6(a) ─
+  // Two broad-crested weirs: Q = 3.40 × wbg × loc^1.5
+  // Verified: Q=8 L/s, wbg=600 mm → loc=26 mm (Ex.2) ✓
+  //           Q=8.5 L/s, wbg=600 mm → loc=27 mm (Ex.3) ✓
+  function calcLoc(Q_Ls, wbg_m) {
+    return ((Q_Ls/1000) / (3.40 * wbg_m))**(2/3);
+  }
+
+  // ── Overflow channel depth doc — Figure H.6(b) ───────────────
+  // Single broad-crested weir Cd≈0.65: Q = 1.11 × woc × doc^1.5
+  // Verified: Q=16 L/s, woc=300 mm → doc=132 mm ✓
+  //           Q=16 L/s, woc=450 mm → doc=101 mm ≈ 102 mm ✓
+  function calcDoc(Q_total_Ls, woc_m) {
+    return ((Q_total_Ls/1000) / (1.11 * woc_m))**(2/3);
+  }
+
+  // ── Method 2: ht = gutter height above overflow weir crest ────
+  // Fig 3.7.4(B) Step 13: ht = [loc + (doc + hf)] − 0.7×loc
+  // Verified: loc=26, doc=132, hf=30 → ht=170 mm ✓
+  function calcHt_M2(loc_m, doc_m) {
+    return 0.3 * loc_m + doc_m + FREEBOARD;
+  }
+
+  // ── Method 3: ht from Figure H.8 ─────────────────────────────
+  // Single overflow weir per gutter: ht = 1.412 × (Q/wbg)^(2/3)
+  // Verified: Q=8.5 L/s, wbg=600 mm → ht=83 mm ✓
+  function calcHt_M3(Q_Ls, wbg_m) {
+    return 1.412 * ((Q_Ls/1000) / wbg_m)**(2/3);
+  }
+
+  // ── Sump final dimensions ─────────────────────────────────────
+  function sumpDims(method, bG, hs_m, loc_m, woc_m, Qout_Ls) {
+    if (method === 2) {
+      // Fig H.5: sump LENGTH (along gutter) = woc + 2×loc, min 400 mm
+      //          sump WIDTH = wbg (box gutter width) — sump sits directly below gutter
+      const rawL = woc_m + 2 * loc_m;
+      const L    = Math.max(rawL, 0.400);
+      const W    = bG;
+      const doc  = calcDoc(Qout_Ls, woc_m);
+      const ht   = calcHt_M2(loc_m, doc);
+      const dbg  = loc_m + doc + FREEBOARD;
+      return { L, W, D: hs_m, loc: loc_m, woc: woc_m, doc, ht, dbg, rawL };
+    } else {
+      // Fig H.7: sump LENGTH = 600 mm min (3×200 mm downpipe arrangement)
+      //          sump WIDTH  = wbg (box gutter width)
+      // Cl. 3.7.6(e): hs ≥ 150 mm regardless of normal outlet position
+      const ht = calcHt_M3(Qout_Ls, bG);
+      return { L: Math.max(0.600, bG), W: bG, D: Math.max(hs_m, 0.150), loc: loc_m, ht };
+    }
+  }
+
+  /* ── DOM HELPERS ─────────────────────────────────────────────── */
+
+  const $ = id => document.getElementById(id);
+  const show = id => { const e = $(id); if (e) e.style.display = ''; };
+  const hide = id => { const e = $(id); if (e) e.style.display = 'none'; };
+  const mm   = v => Math.ceil(v * 1000) + ' mm';
+  const mmR  = v => Math.round(v * 1000) + ' mm';
+  const Ls   = v => v.toFixed(2) + ' L/s';
+
+  function badge(ok) {
+    if (ok === null)   return '';
+    if (ok === 'warn') return '<span class="badge badge-warn">WARN</span>';
+    return ok ? '<span class="badge badge-pass">PASS ✓</span>'
+              : '<span class="badge badge-fail">FAIL ✗</span>';
+  }
+
+  function fillTable(id, rows) {
+    const tb = $(id); tb.innerHTML = '';
+    rows.forEach(([lbl, val, ok]) => {
+      const tr = document.createElement('tr');
+      if (ok === true)   tr.setAttribute('data-s', 'pass');
+      if (ok === false)  tr.setAttribute('data-s', 'fail');
+      if (ok === 'warn') tr.setAttribute('data-s', 'warn');
+      tr.innerHTML = `<td class="lbl">${lbl}</td><td class="val">${val}</td><td class="sta">${badge(ok)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+
+  function getMethod() {
+    return parseInt(document.querySelector('input[name="method"]:checked').value);
+  }
+
+  /* ── VALIDATION ──────────────────────────────────────────────── */
+
+  function clearErrors() {
+    ['intensity-error','area-error','slope-error','outlets-error','width-error']
+      .forEach(id => { const e = $(id); if (e) e.textContent = ''; });
+  }
+
+  function validate(v) {
+    let ok = true;
+    if (!v.I || v.I <= 0)
+      { $('intensity-error').textContent = 'Enter intensity > 0 mm/hr'; ok = false; }
+    if (!v.A || v.A <= 0)
+      { $('area-error').textContent = 'Enter catchment area > 0 m²'; ok = false; }
+    if (!v.S || v.S <= 0)
+      { $('slope-error').textContent = 'Enter a valid slope'; ok = false; }
+    else if (v.S < SLOPE_MIN - 1e-9)
+      { $('slope-error').textContent = 'Slope flatter than 1:200 — not permitted (Cl. 3.7.3)'; ok = false; }
+    else if (v.S > SLOPE_MAX + 1e-9)
+      { $('slope-error').textContent = 'Slope steeper than 1:40 — not permitted (Cl. 3.7.3)'; ok = false; }
+    if (!v.outlets || v.outlets < 1)
+      { $('outlets-error').textContent = 'At least 1 outlet required'; ok = false; }
+    return ok;
+  }
+
+  /* ── MAIN CALCULATION ────────────────────────────────────────── */
+
+  function handleCalculate() {
+    clearErrors();
+
+    const loc    = $('location').value;
+    const ari    = parseInt($('ari').value);
+    const lookI  = lookupIFD(loc, ari);
+    const intEl  = $('intensity');
+    let I        = parseFloat(intEl.value);
+    if ((!intEl.value || isNaN(I)) && lookI) I = lookI;
+
+    const A       = parseFloat($('catchment-area').value);
+    const mat     = $('gutter-material').value;
+    const slopeV  = $('gutter-slope').value;
+    let S         = slopeV === 'manual' ? 1 / parseFloat($('slope-manual').value) : parseFloat(slopeV);
+    const outlets = parseInt($('num-outlets').value);
+    const btype   = $('building-type').value;
+    const method  = getMethod();
+    const minW    = MIN_WIDTH[btype];
+    const targetW  = $('gutter-width').value ? parseFloat($('gutter-width').value) / 1000 : null;
+    const dpSizeV  = $('dp-size').value;
+    const forceId  = dpSizeV === 'auto' ? null : dpSizeV;
+    const woc_m    = parseFloat($('woc-size').value);
+
+    if (!validate({ I, A, S, outlets })) return;
+
+    // AS3500.3 Cl.5.4.6: Cr = 1.0 for all roof surfaces
+    const Qtot = designFlow(I, A);
+    const Qout = Qtot / outlets;
+
+    // Box gutter sizing — Figure H.1 weir method
+    let bG, ha, d_total;
+    if (targetW) {
+      bG      = targetW;
+      ha      = gutterWaterDepth(Qout, bG);
+      d_total = ha + FREEBOARD;
+    } else {
+      const r = autoGutterSize(Qout, minW);
+      if (!r) { alert('Flow exceeds solver range. Add more outlets or consider splitting the catchment.'); return; }
+      bG = r.b; ha = r.ha; d_total = r.d_total;
+    }
+
+    // Round total depth up to nearest 5 mm
+    const d_design  = Math.ceil(d_total * 200) / 200;
+    const ha_design = d_design - FREEBOARD;
+    const capG      = gutterCapacity(bG, ha_design);
+    const ratio     = d_design / bG;
+    const slopeDen  = Math.round(1 / S);
+    const slopeOk   = S >= SLOPE_MIN - 1e-9 && S <= SLOPE_MAX + 1e-9;
+
+    // Downpipe — Figure H.4 orifice method
+    const dp = selectDP(Qout, forceId);
+    if (!dp) { alert('Unknown downpipe selection.'); return; }
+    const hs_raw = sumpDepth_m(Qout, dp.area);
+    const hs     = Math.max(hs_raw, 0.150); // Cl.3.7.4: min 150mm
+
+    // loc — overflow weir crest height above sole of gutter (Fig H.6a)
+    const loc_m = calcLoc(Qout, bG);
+
+    // Method-specific outlet design
+    let sump, rh;
+    let d_final = d_design; // gutter depth may need to increase for Methods 2/3
+
+    if (method === 1) {
+      // Rainhead: uses orifice to find water depth in rainhead
+      rh   = rainheadDims(bG, ha_design, dp, Qout);
+      sump = null;
+      show('sec-rainhead');
+    } else {
+      hide('sec-rainhead');
+      rh = null;
+      sump = sumpDims(method, bG, hs, loc_m, woc_m, Qout);
+      if (method === 2) {
+        // Gutter depth may need to increase to fit overflow channel
+        const reqDbg = sump.dbg;
+        d_final = Math.max(d_design, Math.ceil(reqDbg * 200) / 200);
+      } else {
+        // Method 3: gutter depth = max(ha, ht + loc)
+        const reqDbg = sump.ht + loc_m;
+        d_final = Math.max(d_design, Math.ceil(reqDbg * 200) / 200);
+      }
+    }
+
+    /* Warnings */
+    const warns = [];
+    if (lookI && I < lookI)
+      warns.push(`Intensity entered (${I} mm/hr) is below the BOM IFD value for ${loc} at ${ari}-yr ARI (${lookI} mm/hr).`);
+    if (ari < 100)
+      warns.push(`AS/NZS 3500.3 Table 3.3.4 requires 1% AEP (100-year ARI) for box gutters. Currently using ${ari}-year ARI.`);
+    if (Qout > 16)
+      warns.push(`Flow per outlet (${Ls(Qout)}) exceeds the 16 L/s general method limit (Cl. 3.7.3). An engineer's hydraulic analysis is required.`);
+    if (!dp.adequate)
+      warns.push(`Selected pipe (${dp.label}) requires sump depth > 300 mm — beyond Figure H.4 graph range. Select a larger downpipe or add more outlets.`);
+    if (bG > 1.0)
+      warns.push(`Gutter width exceeds 1000 mm — consider increasing the number of outlets.`);
+    if (ratio > 0.75)
+      warns.push(`Total depth / width ratio (${ratio.toFixed(2)}) exceeds 0.75 — increase gutter width.`);
+    if (method === 2 && d_final > d_design)
+      warns.push(`Method 2 overflow channel requires gutter depth increased to ${Math.round(d_final*1000)} mm (overflow channel sets minimum depth).`);
+    if (method === 3 && d_final > d_design)
+      warns.push(`Method 3 overflow weirs require gutter depth increased to ${Math.round(d_final*1000)} mm (ht + loc governs over free-flow ha).`);
+    const expJt = mat === 'pvc' ? '3 m' : mat === 'copper' ? '3 m' : '6 m';
+    warns.push(`Expansion joints required at max ${expJt} centres for ${mat} gutter (AS/NZS 3500.3 Table 4.3.2). Verify with material supplier.`);
+
+    /* Metrics strip */
+    $('mv-flow').textContent   = Ls(Qout);
+    $('mv-gutter').textContent = `${Math.round(bG * 1000)}×${Math.round(d_final * 1000)}`;
+    $('mv-dp').textContent     = dp.label;
+    if (method === 1) {
+      $('mv-sump').textContent = rh ? `${Math.round(rh.w*1000)}W×${Math.round(rh.hr*1000)}D` : '—';
+    } else {
+      $('mv-sump').textContent = `${Math.round(sump.L*1000)}×${Math.round(sump.W*1000)}×${Math.round(sump.D*1000)}`;
+    }
+
+    const gutterOk = capG >= Qout && ratio <= 0.75;
+    $('mc-flow').className   = 'metric-card fadein ' + (Qout <= 16 ? 'pass' : 'fail');
+    $('mc-gutter').className = 'metric-card fadein ' + (gutterOk ? 'pass' : 'fail');
+    $('mc-dp').className     = 'metric-card fadein ' + (dp.adequate ? 'pass' : 'fail');
+    $('mc-sump').className   = 'metric-card fadein pass';
+
+    /* Detail tables */
+    fillTable('tb-rainfall', [
+      ['BOM IFD Intensity (5-min)',   lookI ? lookI + ' mm/hr' : '—',          null],
+      ['Design Intensity Used',        I + ' mm/hr',                            lookI && I < lookI ? 'warn' : null],
+      ['Design AEP / ARI',             ari === 100 ? '1% AEP (100-yr) ✓' : ari + '-yr ARI', ari === 100 ? true : 'warn'],
+      ['Runoff Coefficient Cr',        '1.00  (all roofs, Cl. 5.4.6)',         true],
+      ['Total Design Flow Q',          Ls(Qtot),                                Qtot <= 16],
+      ['Number of Outlets',            outlets.toString(),                       null],
+      ['Flow per Outlet',              Ls(Qout),                                Qout <= 16],
+    ]);
+
+    fillTable('tb-gutter', [
+      ['Design Reference',            'AS/NZS 3500.3 Figure H.1 (weir)',       null],
+      ['Gutter Material',             mat,                                       null],
+      ['Slope',                       `1:${slopeDen}`,                          slopeOk],
+      ['Width (wbg)',                 mm(bG),                                   bG >= minW],
+      ['Water Depth  (Fig H.1)',       mmR(ha),                                  null],
+      ['Freeboard hf  (Cl. 3.7.2)',   '30 mm  (fixed)',                        true],
+      ['ha Total Depth  (water + hf)', mmR(d_total),                            null],
+      ['ha Adopted  (rounded up)',    mm(d_total),                              null],
+      ...(d_final > d_design ? [['Minimum depth with overflow', mm(d_final), true]] : []),
+      ['d / b Ratio',                 ratio.toFixed(3) + ' ≤ 0.75',            ratio <= 0.75],
+      ['Gutter Capacity at ha',       Ls(capG),                                 capG >= Qout],
+      ['Adopt Gutter Size',           `${Math.round(bG*1000)} W × ${Math.round(d_final*1000)} D mm`, null],
+    ]);
+
+    fillTable('tb-downpipe', [
+      ['Design Reference',            'AS/NZS 3500.3 Figure H.4 (orifice)',    null],
+      ['Flow to Outlet (total)',       Ls(Qout),                                null],
+      ['Minimum Permitted',           'DN90 or 100×50 rect.  (Cl. 3.7.8)',    true],
+      ['Selected Pipe',               dp.label + (dp.forced ? '  (user)' : '  (auto)'), null],
+      ['Required Sump Depth hs  (Fig H.4)', mmR(hs_raw) + '  →  adopt ' + mm(method === 3 ? Math.max(hs_raw, 0.150) : hs_raw), dp.adequate],
+      ...(method === 3 ? [['Min Sump Depth ≥ 150 mm  (Cl. 3.7.6(e))', mm(Math.max(hs_raw, 0.150)), Math.max(hs_raw, 0.150) >= 0.150]] : []),
+    ]);
+
+    if (method === 1 && rh) {
+      fillTable('tb-rainhead', [
+        ['Design Reference',            'AS/NZS 3500.3 Figure H.3',             null],
+        ['Width  (= gutter width)',      mmR(rh.w),                             null],
+        ['Water Depth in Rainhead hw',   mmR(rh.hw),                            null],
+        ['Total Rainhead Height hr = 1.67×hw', mmR(rh.hr),                     null],
+        ['Length lr  (Fig H.3)',         mmR(rh.lr) + '  →  use ≥ 200 mm',    null],
+        ['Pipe selected',                dp.label,                              null],
+        ['Front Opening Area (w × hr)',  (rh.frontA * 1e6).toFixed(0) + ' mm²', rh.openOk],
+        ['Min Opening (1.5 × pipe area)', (rh.minA * 1e6).toFixed(0) + ' mm²', null],
+      ]);
+    }
+
+    if (method === 2 && sump) {
+      const wocMm  = Math.round(sump.woc * 1000);
+      const locMm  = Math.round(sump.loc * 1000);
+      const docMm  = Math.round(sump.doc * 1000);
+      const htMm   = Math.round(sump.ht  * 1000);
+      const dbgMm  = Math.round(sump.dbg * 1000);
+      fillTable('tb-sump', [
+        ['Design Reference',              'AS/NZS 3500.3 Figures H.5 & H.6',  null],
+        ['Overflow Channel Width woc',    wocMm + ' mm  (selected)',           null],
+        ['Channel Offset loc  (Fig H.6a)', locMm + ' mm  (above sole)',        null],
+        ['Channel Depth doc  (Fig H.6b)', docMm + ' mm',                       null],
+        ['Min Gutter Height above Weir ht', htMm + ' mm',                      null],
+        ['Required Gutter Depth dbg = loc + doc + 30', dbgMm + ' mm',         null],
+        ['Sump Length = woc + 2·loc',      mmR(sump.rawL) + '  →  adopt ' + mmR(sump.L), sump.L >= 0.400],
+        ['Sump Width (= gutter width)',    mmR(sump.W),                                   true],
+        ['Sump Depth hs  (Fig H.4)',      mm(sump.D),                          sump.D >= 0.150],
+        ['Sump Dimensions L × W × D',    `${mmR(sump.L)} × ${mmR(sump.W)} × ${mmR(sump.D)}`, true],
+      ]);
+    }
+
+    if (method === 3 && sump) {
+      const locMm = Math.round(sump.loc * 1000);
+      const htMm  = Math.round(sump.ht  * 1000);
+      fillTable('tb-sump', [
+        ['Design Reference',              'AS/NZS 3500.3 Figures H.7 & H.8',  null],
+        ['Overflow Weir Crest loc  (Fig H.6a)', locMm + ' mm above sole',     null],
+        ['Min Height Above Weir ht  (Fig H.8)', htMm + ' mm',                 null],
+        ['Min Gutter Depth dbg = ht + loc',     Math.round((sump.ht + sump.loc)*1000) + ' mm', null],
+        ['Each Weir Length',             mmR(bG) + '  (= gutter width, Cl. 3.7.7)', true],
+        ['Sump Depth hs  (Fig H.4)',     mm(sump.D),                           sump.D >= 0.150],
+        ['Sump Dimensions L × W × D',   `${mmR(sump.L)} × ${mmR(sump.W)} × ${mmR(sump.D)}`, true],
+      ]);
+    }
+
+    /* Compliance summary */
+    fillTable('tb-compliance', [
+      ['ARI ≥ 100-yr (1% AEP)  — Table 3.3.4',            ari === 100 ? '100-yr ARI' : ari + '-yr ARI', ari === 100],
+      ['Runoff coefficient Cr = 1.0  — Cl. 5.4.6',         '1.00',                                       true],
+      ['Flow per outlet ≤ 16 L/s  — Cl. 3.7.3',           Ls(Qout),                                     Qout <= 16],
+      ['Gutter width ≥ minimum (' + btype + ')',            mm(bG),                                       bG >= minW],
+      ['Gutter slope 1:40 – 1:200  — Cl. 3.7.3',          `1:${slopeDen}`,                              slopeOk],
+      ['Freeboard hf = 30 mm  — Cl. 3.7.2',               '30 mm',                                       true],
+      ['Depth/width ≤ 0.75',                               ratio.toFixed(3),                              ratio <= 0.75],
+      ['Gutter capacity ≥ design flow',                    Ls(capG),                                      capG >= Qout],
+      ['Downpipe ≥ DN90  — Cl. 3.7.8',                    dp.label,                                      dp.adequate],
+      ...(method === 3 && sump ? [['Sump depth hs ≥ 150 mm  — Cl. 3.7.6(e)', mmR(sump.D), sump.D >= 0.150]] : []),
+      ...(rh ? [['Rainhead front opening ≥ 1.5× pipe area', (rh.frontA*1e6).toFixed(0)+' mm²', rh.openOk]] : []),
+      ...(method === 2 && sump ? [['Sump length ≥ 400 mm  — Fig H.5', mmR(sump.L), sump.L >= 0.400]] : []),
+      ...(method === 3 && sump ? [['Weir crest length = gutter width  — Cl. 3.7.7', mmR(bG), true]] : []),
+    ]);
+
+    /* Formula workings */
+    renderWorkings({ loc, ari, lookI, I, A, Qtot, outlets, Qout, mat, S, slopeDen,
+                     bG, ha, ha_design, d_total, d_design, d_final, capG,
+                     dp, hs, hs_raw, loc_m, sump, rh, method, minW, btype, woc_m });
+
+    /* Warnings panel */
+    $('warn-list').innerHTML = warns.map(w => `<li>${w}</li>`).join('');
+    $('warn-card').style.display = warns.length ? '' : 'none';
+
+    /* Charts */
+    renderCharts({ method, Qout, bG, ha_design, d_design, d_final, dp, hs_raw, loc_m, woc_m, sump, rh });
+
+    hide('placeholder');
+    ['metrics-strip','detail-grid','compliance-card','workings-card'].forEach(show);
+
+    /* Print header */
+    $('pt-project').textContent  = $('project-name').value || '—';
+    $('pt-job').textContent      = $('job-number').value   || '—';
+    $('pt-designer').textContent = $('designer').value     || '—';
+    $('pt-date').textContent     = $('calc-date').value    || new Date().toLocaleDateString('en-AU');
+    $('pt-location').textContent = `${loc}, ${ari}-year ARI (1% AEP)`;
+    $('pt-method').textContent   = `Method ${method}`;
+  }
+
+  /* ── FORMULA WORKINGS ────────────────────────────────────────── */
+  function renderWorkings(p) {
+    const f3 = v => v.toFixed(3);
+    const fmm = v => (v * 1000).toFixed(1);
+    const lines = [
+      '══════════════════════════════════════════════════════════════════════',
+      '  AS/NZS 3500.3:2025  —  Box Gutter Design Calculation Workings',
+      '══════════════════════════════════════════════════════════════════════',
+      '',
+      'STEP 1 — RAINFALL INTENSITY  (BOM IFD, 5-min, Table 3.3.4)',
+      `  Location  : ${p.loc}`,
+      `  ARI used  : ${p.ari}-year${p.ari < 100 ? '  ⚠  100-yr ARI required for box gutters' : ' (1% AEP) ✓'}`,
+      `  BOM IFD   : ${p.lookI ? p.lookI + ' mm/hr' : 'N/A — manual entry'}`,
+      `  Design I  : ${p.I} mm/hr`,
+      '',
+      'STEP 2 — DESIGN FLOW  (Cl. 5.4.6, Cr = 1.0 for all roofs)',
+      `  Q = Cr × I5 × Ac / 3600 = 1.00 × ${p.I} × ${p.A} / 3600`,
+      `  Q_total  = ${f3(p.Qtot)} L/s  (${p.outlets} outlet${p.outlets > 1 ? 's' : ''})`,
+      `  Q/outlet = ${f3(p.Qout)} L/s`,
+      '',
+      'STEP 3 — BOX GUTTER  (Figure H.1 — power-law formula calibrated to AS3500.3 Appendix I)',
+      `  h_water_mm = 491 × (Q_Ls / w_mm)^0.44   [1:200 slope — conservative for all slopes]`,
+      `  h_water    = 491 × (${f3(p.Qout)} / ${Math.round(p.bG*1000)})^0.44 = ${fmm(p.ha)} mm`,
+      `  Freeboard hf = 30 mm (fixed, Cl. 3.7.2)`,
+      `  ha (total gutter depth) = ${fmm(p.ha)} + 30 = ${fmm(p.d_total)} mm  →  adopt ${Math.round(p.d_design*1000)} mm`,
+      ...(p.d_final > p.d_design ? [`  Overflow governs → final depth = ${Math.round(p.d_final*1000)} mm`] : []),
+      `  d/b = ${Math.round(p.d_final*1000)} / ${Math.round(p.bG*1000)} = ${(p.d_final/p.bG).toFixed(3)}  (limit 0.75)`,
+      `  Adopt: ${Math.round(p.bG*1000)} W × ${Math.round(p.d_final*1000)} D mm   Slope 1:${p.slopeDen}`,
+    ];
+
+    lines.push(
+      '',
+      'STEP 4 — DOWNPIPE  (Figure H.4 orifice, Cd = 0.44, Cl. 3.7.8)',
+      `  Q = ${f3(p.Qout)} L/s    Pipe: ${p.dp.label}    Area: ${(p.dp.area*1e4).toFixed(4)} cm²`,
+      `  hs = Q² / [2g × (0.44 × A)²]`,
+      `  hs = ${f3(p.Qout/1000)}² / [2×9.81 × (0.44 × ${p.dp.area.toFixed(5)})²]`,
+      `  hs = ${fmm(p.hs_raw)} mm  →  adopt ${Math.round(p.hs*1000)} mm  (min 150 mm, Cl. 3.7.4)`,
+    );
+
+    if (p.method === 1 && p.rh) {
+      lines.push(
+        '',
+        'STEP 5 — RAINHEAD  (Figure H.3 orifice, Cd = 0.60)',
+        `  Q/outlet = ${f3(p.Qout)} L/s    Pipe area A = ${(p.dp.area*1e4).toFixed(4)} cm²`,
+        `  hw = Q² / [2g × (0.60 × A)²]`,
+        `  hw = ${fmm(p.rh.hw)} mm    hr = 1.67 × hw = 1.67 × ${fmm(p.rh.hw)} = ${fmm(p.rh.hr)} mm`,
+        `  Width (w) = gutter width = ${Math.round(p.rh.w*1000)} mm`,
+        `  Length lr ≈ 1.054 × ha^1.1 = ${Math.round(p.rh.lr*1000)} mm  →  use ≥ 200 mm`,
+        `  Front opening = w × hr = ${Math.round(p.rh.w*1000)} × ${fmm(p.rh.hr)} = ${(p.rh.frontA*1e6).toFixed(0)} mm²`,
+        `  Min required (1.5 × pipe area) = ${(p.rh.minA*1e6).toFixed(0)} mm²`,
+        `  Check: ${p.rh.openOk ? 'PASS ✓' : 'FAIL ✗  (increase rainhead width or use larger pipe)'}`,
+      );
+    }
+
+    if (p.method === 2 && p.sump) {
+      const s = p.sump;
+      lines.push(
+        '',
+        'STEP 5 — SUMP/SIDE OVERFLOW  (Figures H.5 & H.6)',
+        `  Fig 3.7.4(B) procedure:`,
+        `  Overflow channel offset loc  [Fig H.6(a)] — two broad weirs: Q = 3.40 × wbg × loc^1.5`,
+        `  loc = [${f3(p.Qout/1000)} / (3.40 × ${f3(p.bG)})]^(2/3) = ${Math.round(s.loc*1000)} mm`,
+        `  Overflow channel width woc = ${Math.round(s.woc*1000)} mm  (selected)`,
+        `  Channel depth doc  [Fig H.6(b)] — Q = 1.11 × woc × doc^1.5`,
+        `  doc = [${f3(p.Qout/1000)} / (1.11 × ${f3(s.woc)})]^(2/3) = ${Math.round(s.doc*1000)} mm`,
+        `  Min gutter height above weir crest  ht = 0.3×loc + doc + 30`,
+        `     = 0.3 × ${Math.round(s.loc*1000)} + ${Math.round(s.doc*1000)} + 30 = ${Math.round(s.ht*1000)} mm`,
+        `  Required gutter depth dbg = loc + doc + 30 = ${Math.round(s.dbg*1000)} mm`,
+        `  Sump length = woc + 2·loc = ${Math.round(s.woc*1000)} + 2 × ${Math.round(s.loc*1000)} = ${Math.round(s.rawL*1000)} mm`,
+        `             → adopt ${Math.round(s.L*1000)} mm  (min 400 mm, Fig H.5)`,
+        `  Sump width  = gutter width = ${Math.round(s.W*1000)} mm  (sump seats directly below gutter)`,
+        `  Sump depth hs = ${Math.round(p.sump.D*1000)} mm  (from Fig H.4 — no minimum imposed for Method 2, Cl. 3.7.6(e))`,
+        `  Adopt sump: ${Math.round(s.L*1000)} L × ${Math.round(s.W*1000)} W × ${Math.round(s.D*1000)} D mm`,
+      );
+    }
+
+    if (p.method === 3 && p.sump) {
+      const s = p.sump;
+      lines.push(
+        '',
+        'STEP 5 — SUMP/HIGH-CAPACITY OVERFLOW  (Figures H.7 & H.8)',
+        `  Fig 3.7.4(C) procedure:`,
+        `  Weir crest height above sole loc  [Fig H.6(a)] — two weirs Q = 3.40 × wbg × loc^1.5`,
+        `  loc = [${f3(p.Qout/1000)} / (3.40 × ${f3(p.bG)})]^(2/3) = ${Math.round(s.loc*1000)} mm`,
+        `  Min gutter height above weir tops ht  [Fig H.8] — ht = 1.412 × (Q/wbg)^(2/3)`,
+        `  ht = 1.412 × (${f3(p.Qout/1000)} / ${f3(p.bG)})^(2/3) = ${Math.round(s.ht*1000)} mm`,
+        `  Min gutter depth dbg = ht + loc = ${Math.round(s.ht*1000)} + ${Math.round(s.loc*1000)} = ${Math.round((s.ht+s.loc)*1000)} mm`,
+        `  ha = ${fmm(p.ha)} mm    ht + loc governs: ${(s.ht+s.loc)*1000 > p.ha*1000 ? 'YES' : 'NO'}`,
+        `  Each overflow weir length = wbg = ${Math.round(p.bG*1000)} mm  (Cl. 3.7.7.2)`,
+        `  Sump depth hs = ${Math.round(p.sump.D*1000)} mm  (Fig H.4, min 150 mm enforced by Cl. 3.7.6(e))`,
+        `  Adopt sump: ${Math.round(s.L*1000)} L × ${Math.round(s.W*1000)} W × ${Math.round(s.D*1000)} D mm`,
+        `  Normal outlet: downpipe A  |  Overflow outlet: downpipe F  (Fig H.7)`,
+      );
+    }
+
+    $('formula-content').textContent = lines.join('\n');
+  }
+
+  /* ── CHARTS ─────────────────────────────────────────────────── */
+
+  const CHART_COLORS = [
+    '#7b1fa2','#1565c0','#00838f','#2e7d32','#ef6c00','#c62828','#37474f','#ad1457','#5d4037'
+  ];
+
+  function drawChart(canvasId, cfg) {
+    const canvas = $(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const PAD = { top: 30, right: 110, bottom: 40, left: 46 };
+    const pw = W - PAD.left - PAD.right;
+    const ph = H - PAD.top  - PAD.bottom;
+    const xMax = cfg.xMax, yMax = cfg.yMax;
+    const tx = x => PAD.left + (x / xMax) * pw;
+    const ty = y => PAD.top  + ph - (y / yMax) * ph;
+    const XT = cfg.xTicks || 8, YT = cfg.yTicks || 6;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#fafbfc'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff'; ctx.fillRect(PAD.left, PAD.top, pw, ph);
+
+    // Grid
+    ctx.lineWidth = 0.7;
+    for (let i = 0; i <= XT; i++) {
+      const xv = i * xMax / XT, x = tx(xv);
+      ctx.strokeStyle = '#dde2ea';
+      ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + ph); ctx.stroke();
+      ctx.fillStyle = '#888'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(xv % 1 === 0 ? xv.toFixed(0) : xv.toFixed(1), x, PAD.top + ph + 13);
+    }
+    for (let i = 0; i <= YT; i++) {
+      const yv = i * yMax / YT, y = ty(yv);
+      ctx.strokeStyle = '#dde2ea';
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + pw, y); ctx.stroke();
+      ctx.fillStyle = '#888'; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
+      ctx.fillText(yv.toFixed(0), PAD.left - 4, y + 3);
+    }
+
+    // Border
+    ctx.strokeStyle = '#9ba7bb'; ctx.lineWidth = 1.2;
+    ctx.strokeRect(PAD.left, PAD.top, pw, ph);
+
+    // Curves (clipped to plot area)
+    ctx.save();
+    ctx.beginPath(); ctx.rect(PAD.left, PAD.top, pw, ph); ctx.clip();
+    cfg.curves.forEach(cv => {
+      const hl = cv.id === cfg.highlightCurve;
+      ctx.strokeStyle = hl ? cv.color : cv.color + 'aa';
+      ctx.lineWidth = hl ? 2.2 : 1.3;
+      ctx.beginPath();
+      let go = false;
+      cv.pts.forEach(([x, y]) => {
+        const px2 = tx(x), py2 = ty(y);
+        if (!go) { ctx.moveTo(px2, py2); go = true; } else ctx.lineTo(px2, py2);
+      });
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    // Legend (right panel)
+    const lfs = Math.max(7, Math.min(9, Math.floor(ph / cfg.curves.length * 0.72)));
+    const rowH = lfs + 4;
+    let ly = PAD.top + 4;
+    cfg.curves.forEach(cv => {
+      const hl = cv.id === cfg.highlightCurve;
+      ctx.fillStyle = hl ? cv.color : cv.color + 'aa';
+      ctx.fillRect(PAD.left + pw + 6, ly + lfs / 2 - 1, 13, hl ? 2.5 : 1.8);
+      ctx.fillStyle = hl ? '#111' : '#666';
+      ctx.font = hl ? `bold ${lfs}px sans-serif` : `${lfs}px sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.fillText(cv.label, PAD.left + pw + 22, ly + lfs);
+      ly += rowH;
+    });
+
+    // Calculation point
+    if (cfg.point) {
+      const { x: px, y: py, label: lbl } = cfg.point;
+      const cx = tx(Math.min(Math.max(px, 0), xMax));
+      const cy = ty(Math.min(Math.max(py, 0), yMax));
+      const offTop   = py > yMax;
+      const offRight = px > xMax;
+
+      ctx.save();
+      ctx.beginPath(); ctx.rect(PAD.left, PAD.top, pw, ph); ctx.clip();
+      ctx.strokeStyle = 'rgba(198,40,40,0.45)';
+      ctx.lineWidth = 0.9; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(cx, PAD.top); ctx.lineTo(cx, PAD.top + ph); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(PAD.left, cy); ctx.lineTo(PAD.left + pw, cy); ctx.stroke();
+      ctx.setLineDash([]);
+      if (!offTop && !offRight) {
+        ctx.fillStyle = '#c62828';
+        ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, 2 * Math.PI); ctx.fill();
+      } else {
+        ctx.fillStyle = '#c62828';
+        ctx.beginPath();
+        ctx.moveTo(cx, PAD.top + 5); ctx.lineTo(cx - 5, PAD.top + 12); ctx.lineTo(cx + 5, PAD.top + 12);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
+
+      if (lbl) {
+        const lx = cx > PAD.left + pw * 0.55 ? cx - 8 : cx + 8;
+        const lya = offTop ? PAD.top + 17 : cy - 9;
+        ctx.fillStyle = '#c62828'; ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = cx > PAD.left + pw * 0.55 ? 'right' : 'left';
+        ctx.fillText(lbl, lx, lya);
+      }
+    }
+
+    // Title
+    ctx.fillStyle = '#1565c0'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(cfg.title, PAD.left + pw / 2, 18);
+
+    // Axis labels
+    ctx.fillStyle = '#666'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(cfg.xLabel, PAD.left + pw / 2, H - 4);
+    ctx.save();
+    ctx.translate(10, PAD.top + ph / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillText(cfg.yLabel, 0, 0);
+    ctx.restore();
+  }
+
+  /* ── Chart config builders ───────────────────────────────────── */
+
+  function cfgH1(Qout, d_mm, bG_m) {
+    const stdW = [200, 300, 450, 600, 750, 900];
+    const curW = Math.round(bG_m * 1000);
+    if (!stdW.includes(curW)) { stdW.push(curW); stdW.sort((a, b) => a - b); }
+    const clrs = ['#7b1fa2','#1565c0','#00838f','#2e7d32','#ef6c00','#c62828','#37474f','#ad1457','#5d4037'];
+    const curves = stdW.map((w, i) => {
+      const pts = [[0, 30]];
+      for (let q = 0.1; q <= 16.3; q += 0.2) {
+        const h = 491 * Math.pow(q / w, 0.44) + 30;
+        if (h > 302) { pts.push([q, 302]); break; }
+        pts.push([q, h]);
+      }
+      return { label: `${w} mm`, color: clrs[i % clrs.length], pts, id: String(w) };
+    });
+    return {
+      title: 'Fig H.1 — Gutter Total Depth ha',
+      xLabel: 'Flow Q (L/s)', yLabel: 'ha (mm)',
+      xMax: 16, yMax: 300, xTicks: 8, yTicks: 6,
+      curves, highlightCurve: String(curW),
+      point: { x: Qout, y: d_mm, label: `${Math.round(d_mm)} mm` }
+    };
+  }
+
+  function cfgH4(Qout, hs_mm, selId) {
+    const curves = DOWNPIPES.map((dp, i) => {
+      const pts = [[0, 0]];
+      for (let q = 0.1; q <= 16.3; q += 0.2) {
+        const hs = (q / 1000) ** 2 / (2 * 9.81 * (CD_SUMP * dp.area) ** 2) * 1000;
+        if (hs > 302) { pts.push([q, 302]); break; }
+        pts.push([q, hs]);
+      }
+      return { label: dp.label, color: CHART_COLORS[i % CHART_COLORS.length], pts, id: dp.id };
+    });
+    return {
+      title: 'Fig H.4 — Sump Depth hs  (Cd = 0.44)',
+      xLabel: 'Flow Q (L/s)', yLabel: 'hs (mm)',
+      xMax: 16, yMax: 300, xTicks: 8, yTicks: 6,
+      curves, highlightCurve: selId,
+      point: { x: Qout, y: hs_mm, label: `${Math.round(hs_mm)} mm` }
+    };
+  }
+
+  function cfgH3(Qout, hr_mm, selId) {
+    const curves = DOWNPIPES.map((dp, i) => {
+      const pts = [[0, 0]];
+      for (let q = 0.1; q <= 16.3; q += 0.2) {
+        const hw = (q / 1000) ** 2 / (2 * 9.81 * (CD_RH * dp.area) ** 2);
+        const hr = 1.67 * hw * 1000;
+        if (hr > 302) { pts.push([q, 302]); break; }
+        pts.push([q, hr]);
+      }
+      return { label: dp.label, color: CHART_COLORS[i % CHART_COLORS.length], pts, id: dp.id };
+    });
+    return {
+      title: 'Fig H.3 — Rainhead Depth hr  (Cd = 0.60)',
+      xLabel: 'Flow Q (L/s)', yLabel: 'hr (mm)',
+      xMax: 16, yMax: 300, xTicks: 8, yTicks: 6,
+      curves, highlightCurve: selId,
+      point: { x: Qout, y: hr_mm, label: `${Math.round(hr_mm)} mm` }
+    };
+  }
+
+  function cfgH6a(Qout, loc_mm, bG_m) {
+    const wsm = [0.200, 0.300, 0.450, 0.600, 0.750];
+    if (!wsm.some(w => Math.abs(w - bG_m) < 0.005)) { wsm.push(bG_m); wsm.sort((a, b) => a - b); }
+    const clrs = ['#7b1fa2','#1565c0','#00838f','#2e7d32','#ef6c00','#c62828'];
+    const curves = wsm.map((w, i) => {
+      const pts = [[0, 0]];
+      for (let q = 0.1; q <= 16.3; q += 0.2) {
+        const loc = ((q / 1000) / (3.40 * w)) ** (2 / 3) * 1000;
+        if (loc > 302) { pts.push([q, 302]); break; }
+        pts.push([q, loc]);
+      }
+      return { label: `wbg ${Math.round(w * 1000)} mm`, color: clrs[i % clrs.length], pts, id: String(Math.round(w * 1000)) };
+    });
+    return {
+      title: 'Fig H.6(a) — Weir Offset loc',
+      xLabel: 'Flow Q (L/s)', yLabel: 'loc (mm)',
+      xMax: 16, yMax: 300, xTicks: 8, yTicks: 6,
+      curves, highlightCurve: String(Math.round(bG_m * 1000)),
+      point: { x: Qout, y: loc_mm, label: `${Math.round(loc_mm)} mm` }
+    };
+  }
+
+  function cfgH6b(Qout, doc_mm, woc_m) {
+    const wocs = [0.200, 0.300, 0.450];
+    if (!wocs.some(w => Math.abs(w - woc_m) < 0.005)) { wocs.push(woc_m); wocs.sort((a, b) => a - b); }
+    const clrs = ['#1565c0','#00838f','#2e7d32','#ef6c00'];
+    const curves = wocs.map((w, i) => {
+      const pts = [[0, 0]];
+      for (let q = 0.1; q <= 16.3; q += 0.2) {
+        const doc = ((q / 1000) / (1.11 * w)) ** (2 / 3) * 1000;
+        if (doc > 302) { pts.push([q, 302]); break; }
+        pts.push([q, doc]);
+      }
+      return { label: `woc ${Math.round(w * 1000)} mm`, color: clrs[i % clrs.length], pts, id: String(Math.round(w * 1000)) };
+    });
+    return {
+      title: 'Fig H.6(b) — Channel Depth doc',
+      xLabel: 'Flow Q (L/s)', yLabel: 'doc (mm)',
+      xMax: 16, yMax: 300, xTicks: 8, yTicks: 6,
+      curves, highlightCurve: String(Math.round(woc_m * 1000)),
+      point: { x: Qout, y: doc_mm, label: `${Math.round(doc_mm)} mm` }
+    };
+  }
+
+  function cfgH8(Qout, bG_m, ht_mm) {
+    const xM = 80; // max Q/wbg in L/s/m (= 16 L/s ÷ 0.200 m)
+    const pts = [[0, 0]];
+    for (let x = 0.5; x <= xM + 0.5; x += 0.5) {
+      // ht [mm] = 1.412 × (Q_m3s / wbg_m)^(2/3) × 1000   where Q_m3s/wbg_m = x/1000
+      const ht = 1.412 * Math.pow(x / 1000, 2 / 3) * 1000;
+      if (ht > 302) { pts.push([x, 302]); break; }
+      pts.push([x, ht]);
+    }
+    return {
+      title: 'Fig H.8 — Min Gutter Height ht (Method 3)',
+      xLabel: 'Q / wbg  (L/s per m)', yLabel: 'ht (mm)',
+      xMax: xM, yMax: 300, xTicks: 8, yTicks: 6,
+      curves: [{ label: 'Fig H.8 eqn', color: '#1565c0', pts, id: 'ht' }],
+      highlightCurve: 'ht',
+      point: { x: Qout / bG_m, y: ht_mm, label: `${Math.round(ht_mm)} mm` }
+    };
+  }
+
+  function renderCharts(p) {
+    drawChart('ch-h1', cfgH1(p.Qout, p.d_design * 1000, p.bG));
+    drawChart('ch-h4', cfgH4(p.Qout, p.hs_raw * 1000, p.dp.id));
+
+    $('cw-h3').style.display  = p.method === 1 ? '' : 'none';
+    $('cw-h6a').style.display = p.method !== 1 ? '' : 'none';
+    $('cw-h6b').style.display = p.method === 2 ? '' : 'none';
+    $('cw-h8').style.display  = p.method === 3 ? '' : 'none';
+
+    if (p.method === 1 && p.rh) {
+      drawChart('ch-h3', cfgH3(p.Qout, p.rh.hr * 1000, p.dp.id));
+    }
+    if (p.method === 2 && p.sump) {
+      drawChart('ch-h6a', cfgH6a(p.Qout, p.sump.loc * 1000, p.bG));
+      drawChart('ch-h6b', cfgH6b(p.Qout, p.sump.doc * 1000, p.woc_m));
+    }
+    if (p.method === 3 && p.sump) {
+      drawChart('ch-h6a', cfgH6a(p.Qout, p.sump.loc * 1000, p.bG));
+      drawChart('ch-h8',  cfgH8(p.Qout, p.bG, p.sump.ht * 1000));
+    }
+
+    show('charts-panel');
+  }
+
+  /* ── RESET ───────────────────────────────────────────────────── */
+  function handleReset() {
+    ['project-name','job-number','designer','catchment-area',
+     'gutter-width','slope-manual','intensity'].forEach(id => { const e = $(id); if (e) e.value = ''; });
+    $('location').value        = 'Sydney';
+    $('ari').value             = '100';   // AS3500.3 Table 3.3.4 — 1% AEP is the required default
+    $('roof-type').value       = 'metal';
+    $('gutter-material').value = 'zincalume';
+    $('gutter-slope').value    = '0.005';
+    $('num-outlets').value     = '1';
+    $('building-type').value   = 'domestic';
+    $('dp-size').value         = 'auto';
+    $('woc-size').value        = '0.300';
+    $('woc-group').style.display = 'none';
+    document.getElementById('m1').checked = true;
+    $('slope-manual-group').style.display = 'none';
+    $('calc-date').value = new Date().toLocaleDateString('en-AU');
+    clearErrors();
+    updateBomHint();
+    ['metrics-strip','detail-grid','compliance-card','workings-card','warn-card','charts-panel'].forEach(hide);
+    show('placeholder');
+  }
+
+  /* ── PRINT ───────────────────────────────────────────────────── */
+  function handlePrint() {
+    $('workings-card').setAttribute('open', '');
+    window.print();
+  }
+
+  /* ── BOM HINT ────────────────────────────────────────────────── */
+  function updateBomHint() {
+    const loc   = $('location').value;
+    const ari   = parseInt($('ari').value);
+    const hint  = $('intensity-hint');
+    const input = $('intensity');
+    if (loc === 'Manual') {
+      hint.textContent = 'Enter site-specific value from BOM IFD tool (bom.gov.au)';
+      input.removeAttribute('readonly'); input.placeholder = 'Enter mm/hr'; input.value = '';
+    } else {
+      const v = lookupIFD(loc, ari);
+      hint.textContent = `BOM IFD (indicative): ${v} mm/hr — verify at bom.gov.au`;
+      input.value = v; input.setAttribute('readonly', '');
+    }
+  }
+
+  function debounce(fn, ms) {
+    let t; return function () { clearTimeout(t); t = setTimeout(() => fn.apply(this, arguments), ms); };
+  }
+
+  /* ── INIT ────────────────────────────────────────────────────── */
+  function init() {
+    $('calc-date').value = new Date().toLocaleDateString('en-AU');
+
+    $('gutter-slope').addEventListener('change', function () {
+      $('slope-manual-group').style.display = this.value === 'manual' ? '' : 'none';
+    });
+    $('location').addEventListener('change', updateBomHint);
+    $('ari').addEventListener('change', updateBomHint);
+    updateBomHint();
+
+    const dCalc = debounce(handleCalculate, 220);
+    // Show/hide overflow channel width based on method
+    function updateMethodUI() {
+      const m = getMethod();
+      $('woc-group').style.display = m === 2 ? '' : 'none';
+    }
+    ['m1','m2','m3'].forEach(id => {
+      const el = $(id);
+      if (el) el.addEventListener('change', updateMethodUI);
+    });
+    updateMethodUI();
+
+    ['location','ari','intensity','catchment-area','roof-type','gutter-material',
+     'gutter-slope','slope-manual','num-outlets','gutter-width','building-type',
+     'dp-size','woc-size','m1','m2','m3'].forEach(id => {
+      const el = $(id);
+      if (el) { el.addEventListener('change', dCalc); el.addEventListener('input', dCalc); }
+    });
+  }
+
+  window.handleCalculate = handleCalculate;
+  window.handleReset     = handleReset;
+  window.handlePrint     = handlePrint;
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>

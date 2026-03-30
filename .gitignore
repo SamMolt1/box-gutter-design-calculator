@@ -1,0 +1,6 @@
+node_modules/
+package-lock.json
+pdf_text.txt
+extract_pdf.js
+AS-NZS35003-2025.pdf
+*.bat
