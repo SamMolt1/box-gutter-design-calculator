@@ -1,0 +1,20 @@
+{
+  "name": "Box Gutter Design Calculator",
+  "short_name": "Box Gutter",
+  "description": "AS/NZS 3500.3:2025 Box Gutter Design Calculator for Australian stormwater drainage",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#1565c0",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "lang": "en-AU"
+}

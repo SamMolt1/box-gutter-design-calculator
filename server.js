@@ -9,7 +9,9 @@ const DIR  = __dirname;
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css':  'text/css',
-  '.js':   'text/javascript',
+  '.js':   'application/javascript',
+  '.json': 'application/json',
+  '.svg':  'image/svg+xml',
   '.png':  'image/png',
   '.ico':  'image/x-icon',
 };
