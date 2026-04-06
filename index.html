@@ -601,7 +601,9 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
+      transition: grid-template-columns 0.2s ease;
     }
+    #charts-grid.enlarged { grid-template-columns: 1fr; }
     @media (max-width: 700px) {
       #charts-grid { grid-template-columns: 1fr; }
     }
@@ -612,6 +614,20 @@
       overflow: hidden;
     }
     .chart-wrap canvas { display: block; width: 100%; height: auto; }
+    .btn-enlarge {
+      margin-left: auto;
+      padding: 0.25rem 0.65rem;
+      font-size: var(--text-xs);
+      font-family: var(--font-sans);
+      font-weight: 500;
+      color: var(--slate-500);
+      background: var(--white);
+      border: 1px solid var(--slate-300);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .btn-enlarge:hover { background: var(--slate-100); color: var(--slate-700); }
     /* charts visible in print — see @media print block */
 
     /* ── Footer ─────────────────────────────────────────────────── */
@@ -658,7 +674,7 @@
       *, *::before, *::after { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       body { font-size: 9pt; background: #fff; color: #111; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; line-height: 1.45; }
       #app { padding: 0; max-width: 100%; }
-      #app-header, #input-col, .action-bar, .btn-print, .skip-link, #placeholder, .ac-overlay { display: none !important; }
+      #app-header, #input-col, .action-bar, .btn-print, .btn-enlarge, .skip-link, #placeholder, .ac-overlay { display: none !important; }
       #results-col { display: block !important; }
       #layout { display: block !important; margin-top: 0; }
 
@@ -1204,6 +1220,7 @@
           <div class="card-header">
             <span class="ch-icon" aria-hidden="true">&#128200;</span>
             <h2>Design Charts &mdash; AS/NZS 3500.3 Appendix H</h2>
+            <button class="btn-enlarge" id="btn-chart-enlarge" onclick="toggleChartSize()">Enlarge</button>
           </div>
           <div class="card-body" style="padding:0.75rem">
             <div id="charts-grid">
@@ -2004,6 +2021,13 @@
   function drawChart(canvasId, cfg) {
     const canvas = $(canvasId);
     if (!canvas) return;
+    // Resize canvas to container width, maintain aspect ratio
+    const containerW = canvas.parentElement.clientWidth;
+    if (containerW > 0) {
+      const aspect = 272 / 400;
+      canvas.width = containerW;
+      canvas.height = Math.round(containerW * aspect);
+    }
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
     const PAD = { top: 30, right: 110, bottom: 40, left: 46 };
@@ -2248,7 +2272,20 @@
     };
   }
 
+  let _lastChartParams = null;
+
+  function toggleChartSize() {
+    const grid = $('charts-grid');
+    const btn = $('btn-chart-enlarge');
+    grid.classList.toggle('enlarged');
+    const isEnlarged = grid.classList.contains('enlarged');
+    btn.textContent = isEnlarged ? 'Compact' : 'Enlarge';
+    // Re-render charts at new size after layout reflows
+    if (_lastChartParams) setTimeout(() => renderCharts(_lastChartParams), 50);
+  }
+
   function renderCharts(p) {
+    _lastChartParams = p;
     drawChart('ch-h1', cfgH1(p.Qout, p.d_design * 1000, p.bG));
     drawChart('ch-h4', cfgH4(p.Qout, p.hs_raw * 1000, p.dp.id));
 
@@ -2806,6 +2843,7 @@
 
   window.handleReset     = handleReset;
   window.handlePrint     = handlePrint;
+  window.toggleChartSize = toggleChartSize;
 
   document.addEventListener('DOMContentLoaded', init);
 })();
