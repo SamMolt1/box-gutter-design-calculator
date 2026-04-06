@@ -1662,14 +1662,19 @@
     const Qtot = designFlow(I, A);
     const Qout = Qtot / outlets;
 
-    // Box gutter sizing — Figure H.1 weir method
+    // Minimum design flow: size all components for at least 3 L/s per outlet
+    const MIN_Q = 3.0;
+    const Qdesign = Math.max(Qout, MIN_Q);
+    const qGoverned = Qout < MIN_Q;
+
+    // Box gutter sizing — Figure H.1 weir method (uses Qdesign)
     let bG, ha, d_total;
     if (targetW) {
       bG      = targetW;
-      ha      = gutterWaterDepth(Qout, bG);
+      ha      = gutterWaterDepth(Qdesign, bG);
       d_total = ha + FREEBOARD;
     } else {
-      const r = autoGutterSize(Qout, minW);
+      const r = autoGutterSize(Qdesign, minW);
       if (!r) { alert('Flow exceeds solver range. Add more outlets or consider splitting the catchment.'); return; }
       bG = r.b; ha = r.ha; d_total = r.d_total;
     }
@@ -1683,22 +1688,22 @@
     const slopeDen  = Math.round(1 / S);
     const slopeOk   = S >= SLOPE_MIN - 1e-9 && S <= SLOPE_MAX + 1e-9;
 
-    // Downpipe — Figure H.4 orifice method
-    const dp = selectDP(Qout, forceId);
+    // Downpipe — Figure H.4 orifice method (uses Qdesign)
+    const dp = selectDP(Qdesign, forceId);
     if (!dp) { alert('Unknown downpipe selection.'); return; }
-    const hs_raw = sumpDepth_m(Qout, dp.area);
+    const hs_raw = sumpDepth_m(Qdesign, dp.area);
     const hs     = Math.max(hs_raw, 0.150); // Cl.3.7.4: min 150mm
 
     // loc — overflow weir crest height above sole of gutter (Fig H.6a)
-    const loc_m = calcLoc(Qout, bG);
+    const loc_m = calcLoc(Qdesign, bG);
 
     // Method-specific outlet design
     let sump, rh;
     let d_final = d_design; // gutter depth may need to increase for Methods 2/3
 
     if (method === 1) {
-      // Rainhead: uses orifice to find water depth in rainhead
-      rh   = rainheadDims(bG, ha_design, dp, Qout);
+      // Rainhead: uses orifice to find water depth in rainhead (uses Qdesign)
+      rh   = rainheadDims(bG, ha_design, dp, Qdesign);
       sump = null;
       show('sec-rainhead');
       hide('sec-sump');
@@ -1706,7 +1711,7 @@
       hide('sec-rainhead');
       show('sec-sump');
       rh = null;
-      sump = sumpDims(method, bG, method === 2 ? hs_raw : hs, loc_m, woc_m, Qout);
+      sump = sumpDims(method, bG, method === 2 ? hs_raw : hs, loc_m, woc_m, Qdesign);
       if (method === 2) {
         // Gutter depth may need to increase to fit overflow channel
         const reqDbg = sump.dbg;
@@ -1720,6 +1725,8 @@
 
     /* Warnings */
     const warns = [];
+    if (qGoverned)
+      warns.push(`Actual flow per outlet (${Ls(Qout)}) is below ${MIN_Q} L/s — all components sized for minimum ${MIN_Q} L/s design flow.`);
     if (lookI && I < lookI)
       warns.push(`Intensity entered (${I} mm/hr) is below the nearest-city indicative BOM IFD value for ${loc} at ${ari}-yr ARI (${lookI} mm/hr). Verify your site-specific value via the BOM IFD link.`);
     if (ari < 100)
@@ -1740,7 +1747,7 @@
     warns.push(`Expansion joints required at max ${expJt} centres for ${mat} gutter (AS/NZS 3500.3 Table 4.3.2). Verify with material supplier.`);
 
     /* Metrics strip */
-    $('mv-flow').textContent   = Ls(Qout);
+    $('mv-flow').textContent   = Ls(Qdesign);
     $('mv-gutter').textContent = `${Math.round(bG * 1000)}×${Math.round(d_final * 1000)}`;
     $('mv-dp').textContent     = dp.label;
     if (method === 1) {
@@ -1754,7 +1761,7 @@
     }
 
     const gutterOk = capG >= Qout && ratio <= 0.75;
-    $('mc-flow').className   = 'metric-card fadein ' + (Qout <= 16 ? 'pass' : 'fail');
+    $('mc-flow').className   = 'metric-card fadein ' + (Qdesign <= 16 ? 'pass' : 'fail');
     $('mc-gutter').className = 'metric-card fadein ' + (gutterOk ? 'pass' : 'fail');
     $('mc-dp').className     = 'metric-card fadein ' + (dp.adequate ? 'pass' : 'fail');
     $('mc-sump').className   = 'metric-card fadein pass';
@@ -1768,6 +1775,7 @@
       ['Total Design Flow Q',          Ls(Qtot),                                null],
       ['Number of Outlets',            outlets.toString(),                       null],
       ['Flow per Outlet',              Ls(Qout),                                Qout <= 16],
+      ...(qGoverned ? [['Design Flow (min ' + MIN_Q + ' L/s governs)', Ls(Qdesign), 'warn']] : []),
     ]);
 
     fillTable('tb-gutter', [
@@ -1876,7 +1884,7 @@
     }
 
     /* Formula workings */
-    renderWorkings({ loc, ari, lookI, I, A, Qtot, outlets, Qout, mat, S, slopeDen,
+    renderWorkings({ loc, ari, lookI, I, A, Qtot, outlets, Qout, Qdesign, qGoverned, mat, S, slopeDen,
                      bG, ha, ha_design, d_total, d_design, d_final, capG,
                      dp, hs, hs_raw, loc_m, sump, rh, method, minW, btype, woc_m });
 
@@ -1889,7 +1897,7 @@
     $('warn-card').style.display = warns.length ? '' : 'none';
 
     /* Charts */
-    renderCharts({ method, Qout, bG, ha_design, d_design, d_final, dp, hs_raw, loc_m, woc_m, sump, rh });
+    renderCharts({ method, Qout: Qdesign, bG, ha_design, d_design, d_final, dp, hs_raw, loc_m, woc_m, sump, rh });
 
     hide('placeholder');
     ['metrics-strip','detail-grid','compliance-card','workings-card'].forEach(id => {
@@ -1934,10 +1942,12 @@
       `  Q = Cr × I5 × Ac / 3600 = 1.00 × ${p.I} × ${p.A} / 3600`,
       `  Q_total  = ${f3(p.Qtot)} L/s  (${p.outlets} outlet${p.outlets > 1 ? 's' : ''})`,
       `  Q/outlet = ${f3(p.Qout)} L/s`,
+      ...(p.qGoverned ? [`  Q/outlet < 3 L/s → adopt minimum design flow = 3.00 L/s`] : []),
+      `  Q_design = ${f3(p.Qdesign)} L/s${p.qGoverned ? '  (minimum governs)' : ''}`,
       '',
       'STEP 3 — BOX GUTTER  (Figure H.1 — power-law formula calibrated to AS3500.3 Appendix I)',
       `  h_water_mm = 491 × (Q_Ls / w_mm)^0.44   [1:200 slope — conservative for all slopes]`,
-      `  h_water    = 491 × (${f3(p.Qout)} / ${Math.round(p.bG*1000)})^0.44 = ${fmm(p.ha)} mm`,
+      `  h_water    = 491 × (${f3(p.Qdesign)} / ${Math.round(p.bG*1000)})^0.44 = ${fmm(p.ha)} mm`,
       `  Freeboard hf = 30 mm (fixed, Cl. 3.7.2)`,
       `  ha (total gutter depth) = ${fmm(p.ha)} + 30 = ${fmm(p.d_total)} mm  →  adopt ${Math.round(p.d_design*1000)} mm`,
       ...(p.d_final > p.d_design ? [`  Overflow governs → final depth = ${Math.round(p.d_final*1000)} mm`] : []),
@@ -1948,9 +1958,9 @@
     lines.push(
       '',
       'STEP 4 — DOWNPIPE  (Figure H.4 orifice, Cd = 0.44, Cl. 3.7.8)',
-      `  Q = ${f3(p.Qout)} L/s    Pipe: ${p.dp.label}    Area: ${(p.dp.area*1e4).toFixed(4)} cm²`,
+      `  Q = ${f3(p.Qdesign)} L/s    Pipe: ${p.dp.label}    Area: ${(p.dp.area*1e4).toFixed(4)} cm²`,
       `  hs = Q² / [2g × (0.44 × A)²]`,
-      `  hs = ${f3(p.Qout/1000)}² / [2×9.81 × (0.44 × ${p.dp.area.toFixed(5)})²]`,
+      `  hs = ${f3(p.Qdesign/1000)}² / [2×9.81 × (0.44 × ${p.dp.area.toFixed(5)})²]`,
       `  hs = ${fmm(p.hs_raw)} mm` + (p.method === 3 ? `  →  adopt ${Math.round(Math.max(p.hs_raw, 0.150)*1000)} mm  (min 150 mm, Cl. 3.7.6(e))` : ''),
     );
 
@@ -1958,7 +1968,7 @@
       lines.push(
         '',
         'STEP 5 — RAINHEAD  (Figure H.3 orifice, Cd = 0.60)',
-        `  Q/outlet = ${f3(p.Qout)} L/s    Pipe area A = ${(p.dp.area*1e4).toFixed(4)} cm²`,
+        `  Q_design = ${f3(p.Qdesign)} L/s    Pipe area A = ${(p.dp.area*1e4).toFixed(4)} cm²`,
         `  hw = Q² / [2g × (0.60 × A)²]`,
         `  hw = ${fmm(p.rh.hw)} mm    hr_calc = 1.67 × hw = 1.67 × ${fmm(p.rh.hw)} = ${fmm(p.rh.hr_calc)} mm`,
         `  hr_min = 1.25 × pipe ext. dia = 1.25 × ${Math.round((p.dp.extDia||0.100)*1000)} = ${fmm(p.rh.hr_min)} mm  (Fig H.2 Note 1)`,
