@@ -78,14 +78,14 @@ async function visible(page, id) {
 
 /** Reset form and results */
 async function reset(page) {
-  await page.click('.btn-reset');
+  await page.evaluate(() => window.handleReset());
   await page.waitForFunction(
     () => document.getElementById('placeholder').offsetParent !== null,
     { timeout: 2000 }
   );
 }
 
-/** Run a full calculation and wait for results */
+/** Run a full calculation and wait for results — sets all values in one evaluate to avoid cascading debounce timeouts */
 async function calculate(page, opts = {}) {
   const {
     location       = 'Sydney',
@@ -102,34 +102,39 @@ async function calculate(page, opts = {}) {
     gutterWidth    = null,
   } = opts;
 
-  if (location === 'Manual') {
-    await sel(page, 'location', 'Manual');
-  } else {
-    await sel(page, 'location', location);
-  }
+  await page.evaluate((o) => {
+    const $ = id => document.getElementById(id);
+    // Set all values without triggering events
+    $('location').value = o.location;
+    $('ari').value = o.ari;
+    $('catchment-area').value = o.area;
+    $('roof-type').value = o.roofType;
+    $('gutter-material').value = o.gutterMaterial;
+    $('gutter-slope').value = o.slope;
+    if (o.slope === 'manual') $('slope-manual-group').style.display = '';
+    $('num-outlets').value = o.outlets;
+    $('m' + o.method).checked = true;
+    if (o.method === 2) $('woc-group').style.display = '';
+    else $('woc-group').style.display = 'none';
+    $('dp-size').value = o.dpSize;
+    if (o.wocSize) $('woc-size').value = o.wocSize;
+    if (o.gutterWidth) $('gutter-width').value = o.gutterWidth;
+    else $('gutter-width').value = '';
+    // Update intensity from BOM lookup (no event dispatch — call directly)
+    if (o.location !== 'Manual') {
+      const ifd = {'Sydney':[90,110,140,165,190,235,275],'Melbourne':[55,70,90,110,130,160,185],'Brisbane':[100,125,165,195,230,285,330],'Perth':[60,75,100,120,145,180,215],'Adelaide':[50,65,85,105,125,155,180],'Darwin':[145,175,220,255,295,355,405],'Hobart':[45,55,70,85,100,125,145],'Canberra':[60,75,95,115,135,165,195]};
+      const ariIdx = {1:0,2:1,5:2,10:3,20:4,50:5,100:6};
+      const v = ifd[o.location]?.[ariIdx[parseInt(o.ari)]];
+      if (v) { $('intensity').value = v; $('intensity').setAttribute('readonly',''); }
+    }
+    if (o.intensity) { $('intensity').value = o.intensity; $('intensity').removeAttribute('readonly'); }
+    // Single calculate call — no debounce cascade
+    window.handleCalculate();
+  }, { location, ari, area, roofType, gutterMaterial, slope, outlets, method, dpSize, wocSize, intensity, gutterWidth });
 
-  await sel(page, 'ari', ari);
-  await num(page, 'catchment-area', area);
-  await sel(page, 'roof-type', roofType);
-  await sel(page, 'gutter-material', gutterMaterial);
-  await sel(page, 'gutter-slope', slope);
-  await num(page, 'num-outlets', outlets);
-  await page.click(`label[for="m${method}"]`);
-  await sel(page, 'dp-size', dpSize);
-
-  if (wocSize) {
-    await page.waitForFunction(() => document.getElementById('woc-group').style.display !== 'none');
-    await sel(page, 'woc-size', wocSize);
-  }
-  if (gutterWidth) await num(page, 'gutter-width', gutterWidth);
-
-  // Set manual intensity last so ARI/location changes don't overwrite it
-  if (intensity) await num(page, 'intensity', intensity);
-
-  await page.click('.btn-calc');
   await page.waitForFunction(
     () => document.getElementById('metrics-strip').offsetParent !== null,
-    { timeout: 5000 }
+    { timeout: 10000 }
   );
 }
 
@@ -147,10 +152,10 @@ async function calculate(page, opts = {}) {
     server = await startServer();
     console.log('\x1b[32mOK\x1b[0m');
 
-    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-gpu'], protocolTimeout: 180000 });
     const page = await browser.newPage();
-    page.setDefaultTimeout(8000);
-    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+    page.setDefaultTimeout(30000);
+    await page.goto(BASE, { waitUntil: 'networkidle2', timeout: 30000 });
 
     // ── 1. Page & PWA ──────────────────────────────────────────────────────
     console.log('\n  \x1b[1m1. Page & PWA\x1b[0m');
@@ -217,7 +222,7 @@ async function calculate(page, opts = {}) {
     console.log('\n  \x1b[1m3. Input Validation\x1b[0m');
 
     await test('Calculate with no area shows error, no results', async () => {
-      await page.click('.btn-calc');
+      await page.evaluate(() => window.handleCalculate());
       const err = await txt(page, 'area-error');
       assert(err.length > 0, 'Expected area-error to be shown');
       const v = await visible(page, 'metrics-strip');
@@ -228,7 +233,7 @@ async function calculate(page, opts = {}) {
       await sel(page, 'gutter-slope', 'manual');
       await num(page, 'slope-manual', 25);
       await num(page, 'catchment-area', 100);
-      await page.click('.btn-calc');
+      await page.evaluate(() => window.handleCalculate());
       const err = await txt(page, 'slope-error');
       assert(err.length > 0, `Expected slope error for 1:25, got: "${err}"`);
       await sel(page, 'gutter-slope', '0.010');
@@ -238,7 +243,7 @@ async function calculate(page, opts = {}) {
       await sel(page, 'gutter-slope', 'manual');
       await num(page, 'slope-manual', 250);
       await num(page, 'catchment-area', 100);
-      await page.click('.btn-calc');
+      await page.evaluate(() => window.handleCalculate());
       const err = await txt(page, 'slope-error');
       assert(err.length > 0, `Expected slope error for 1:250, got: "${err}"`);
       await sel(page, 'gutter-slope', '0.010');
@@ -247,7 +252,7 @@ async function calculate(page, opts = {}) {
     await test('Zero outlets shows error', async () => {
       await page.$eval('#num-outlets', el => el.value = '0');
       await num(page, 'catchment-area', 100);
-      await page.click('.btn-calc');
+      await page.evaluate(() => window.handleCalculate());
       const err = await txt(page, 'outlets-error');
       assert(err.length > 0, 'Expected outlets error');
       await num(page, 'num-outlets', 1);

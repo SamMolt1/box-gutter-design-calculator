@@ -418,8 +418,10 @@
       display: inline-flex; align-items: center; gap: 0.4rem;
     }
     .btn:active { transform: scale(0.98); }
-    .btn-reset { background: #fef2f2; color: #991b1b; border: 1.5px solid #fca5a5; }
-    .btn-reset:hover { background: #fee2e2; border-color: #f87171; }
+    .btn-calc  { background: var(--slate-950); color: var(--white); flex: 1; justify-content: center; }
+    .btn-calc:hover { background: #222222; box-shadow: var(--card-shadow-lg); }
+    .btn-reset { background: var(--white); color: var(--slate-700); border: 1.5px solid var(--slate-300); }
+    .btn-reset:hover { background: var(--slate-50); border-color: var(--slate-400); }
     .btn-print { background: var(--white); color: var(--slate-700); border: 1.5px solid var(--slate-300); }
     .btn-print:hover { background: var(--slate-50); border-color: var(--slate-400); }
 
@@ -1085,7 +1087,8 @@
           </div>
 
           <div class="action-bar">
-            <button class="btn btn-reset" onclick="handleReset()">&#9888; Reset</button>
+            <button class="btn btn-calc" onclick="handleCalculate()">Calculate</button>
+            <button class="btn btn-reset" onclick="handleReset()">Reset</button>
             <button class="btn btn-print" onclick="handlePrint()">Print</button>
           </div>
         </div>
@@ -1227,7 +1230,7 @@
               <div class="chart-wrap">
                 <canvas id="ch-h1" width="400" height="272"></canvas>
               </div>
-              <div class="chart-wrap">
+              <div class="chart-wrap" id="cw-h4" style="display:none">
                 <canvas id="ch-h4" width="400" height="272"></canvas>
               </div>
               <div class="chart-wrap" id="cw-h3" style="display:none">
@@ -1483,9 +1486,10 @@
       const hs = sumpDepth_m(Q_Ls, dp.area);
       if (hs <= HS_MAX) return { ...dp, hs: Math.max(hs, 0.150), adequate: true, forced: false };
     }
-    // Fallback: DN150×150 rect (largest)
+    // Fallback: DN150×150 rect (largest) — inadequate but best available
     const dp = DOWNPIPES[DOWNPIPES.length - 1];
-    return { ...dp, hs: HS_MAX, adequate: false, forced: false };
+    const hs = sumpDepth_m(Q_Ls, dp.area);
+    return { ...dp, hs, adequate: false, forced: false };
   }
 
   // ── Rainhead — Figure H.3 orifice equation ────────────────────
@@ -1760,7 +1764,7 @@
       $('mv-sump').textContent = `${Math.round(sump.L*1000)}×${Math.round(sump.W*1000)}×${Math.round(sump.D*1000)}`;
     }
 
-    const gutterOk = capG >= Qout && ratio <= 0.75;
+    const gutterOk = capG >= Qdesign && ratio <= 0.75;
     $('mc-flow').className   = 'metric-card fadein ' + (Qdesign <= 16 ? 'pass' : 'fail');
     $('mc-gutter').className = 'metric-card fadein ' + (gutterOk ? 'pass' : 'fail');
     $('mc-dp').className     = 'metric-card fadein ' + (dp.adequate ? 'pass' : 'fail');
@@ -1789,7 +1793,7 @@
       ['ha Adopted  (rounded up)',    mm(d_total),                              null],
       ...(d_final > d_design ? [['Minimum depth with overflow', mm(d_final), true]] : []),
       ['d / b Ratio',                 ratio.toFixed(3) + ' ≤ 0.75',            ratio <= 0.75],
-      ['Gutter Capacity at ha',       Ls(capG),                                 capG >= Qout],
+      ['Gutter Capacity at ha',       Ls(capG),                                 capG >= Qdesign],
       ['Min Depth  (AS3500.3)',       '75 mm',                                   d_final >= MIN_DEPTH],
       ['Adopt Gutter Size',           `${Math.round(bG*1000)} W × ${Math.round(d_final*1000)} D mm`, null],
     ]);
@@ -1797,7 +1801,7 @@
     const hs_adopt = method === 3 ? Math.max(hs_raw, 0.150) : hs_raw;
     fillTable('tb-downpipe', [
       ['Design Reference',            'AS/NZS 3500.3 Figure H.4 (orifice)',    null],
-      ['Flow to Outlet (total)',       Ls(Qout),                                null],
+      ['Design Flow to Outlet',        Ls(Qdesign),                             null],
       ['Minimum Permitted',           'DN90 or 100×50 rect.  (Cl. 3.7.8)',    true],
       ['Selected Pipe',               dp.label + (dp.forced ? '  (user)' : '  (auto)'), null],
       ['Sump Depth hs  (Fig H.4)',    mmR(hs_raw),                              dp.adequate],
@@ -1863,7 +1867,7 @@
       ['Freeboard hf = 30 mm  — Cl. 3.7.2',               '30 mm',                                       true],
       ['Gutter depth ≥ 75 mm  — AS3500.3',                mm(d_final),                                   d_final >= MIN_DEPTH],
       ['Depth/width ≤ 0.75',                               ratio.toFixed(3),                              ratio <= 0.75],
-      ['Gutter capacity ≥ design flow',                    Ls(capG),                                      capG >= Qout],
+      ['Gutter capacity ≥ design flow',                    Ls(capG),                                      capG >= Qdesign],
       ['Downpipe ≥ DN90  — Cl. 3.7.8',                    dp.label,                                      dp.adequate],
       ...(method === 3 && sump ? [['Sump depth hs ≥ 150 mm  — Cl. 3.7.6(e)', mmR(sump.D), sump.D >= 0.150]] : []),
       ...(rh ? [['Rainhead hr ≥ 1.25× pipe ext. dia  — Fig H.2', mmR(rh.hr) + ' ≥ ' + mmR(rh.hr_min), rh.hrMinOk]] : []),
@@ -1974,7 +1978,7 @@
         `  hr_min = 1.25 × pipe ext. dia = 1.25 × ${Math.round((p.dp.extDia||0.100)*1000)} = ${fmm(p.rh.hr_min)} mm  (Fig H.2 Note 1)`,
         `  hr adopted = max(${fmm(p.rh.hr_calc)}, ${fmm(p.rh.hr_min)}) = ${fmm(p.rh.hr)} mm  ${p.rh.hrMinOk ? '✓' : '← min governs'}`,
         `  Width (w) = gutter width = ${Math.round(p.rh.w*1000)} mm`,
-        `  Length lr ≈ 1.054 × ha^1.1 = ${Math.round(p.rh.lr*1000)} mm  →  use ≥ 200 mm`,
+        `  Length lr ≈ 1.054 × ha^1.1 = ${Math.round(p.rh.lr*1000)} mm`,
         `  Front opening = w × hr = ${Math.round(p.rh.w*1000)} × ${fmm(p.rh.hr)} = ${(p.rh.frontA*1e6).toFixed(0)} mm²`,
         `  Min required (1.5 × pipe area) = ${(p.rh.minA*1e6).toFixed(0)} mm²`,
         `  Check: ${p.rh.openOk ? 'PASS ✓' : 'FAIL ✗  (increase rainhead width or use larger pipe)'}`,
@@ -1988,10 +1992,10 @@
         'STEP 5 — SUMP/SIDE OVERFLOW  (Figures H.5 & H.6)',
         `  Fig 3.7.4(B) procedure:`,
         `  Overflow channel offset loc  [Fig H.6(a)] — two broad weirs: Q = 3.40 × wbg × loc^1.5`,
-        `  loc = [${f3(p.Qout/1000)} / (3.40 × ${f3(p.bG)})]^(2/3) = ${Math.round(s.loc*1000)} mm`,
+        `  loc = [${f3(p.Qdesign/1000)} / (3.40 × ${f3(p.bG)})]^(2/3) = ${Math.round(s.loc*1000)} mm`,
         `  Overflow channel width woc = ${Math.round(s.woc*1000)} mm  (selected)`,
         `  Channel depth doc  [Fig H.6(b)] — Q = 1.11 × woc × doc^1.5`,
-        `  doc = [${f3(p.Qout/1000)} / (1.11 × ${f3(s.woc)})]^(2/3) = ${Math.round(s.doc*1000)} mm`,
+        `  doc = [${f3(p.Qdesign/1000)} / (1.11 × ${f3(s.woc)})]^(2/3) = ${Math.round(s.doc*1000)} mm`,
         `  Min gutter height above weir crest  ht = 0.3×loc + doc + 30`,
         `     = 0.3 × ${Math.round(s.loc*1000)} + ${Math.round(s.doc*1000)} + 30 = ${Math.round(s.ht*1000)} mm`,
         `  Required gutter depth dbg = loc + doc + 30 = ${Math.round(s.dbg*1000)} mm`,
@@ -2010,9 +2014,9 @@
         'STEP 5 — SUMP/HIGH-CAPACITY OVERFLOW  (Figures H.7 & H.8)',
         `  Fig 3.7.4(C) procedure:`,
         `  Weir crest height above sole loc  [Fig H.6(a)] — two weirs Q = 3.40 × wbg × loc^1.5`,
-        `  loc = [${f3(p.Qout/1000)} / (3.40 × ${f3(p.bG)})]^(2/3) = ${Math.round(s.loc*1000)} mm`,
+        `  loc = [${f3(p.Qdesign/1000)} / (3.40 × ${f3(p.bG)})]^(2/3) = ${Math.round(s.loc*1000)} mm`,
         `  Min gutter height above weir tops ht  [Fig H.8] — ht = 1.412 × (Q/wbg)^(2/3)`,
-        `  ht = 1.412 × (${f3(p.Qout/1000)} / ${f3(p.bG)})^(2/3) = ${Math.round(s.ht*1000)} mm`,
+        `  ht = 1.412 × (${f3(p.Qdesign/1000)} / ${f3(p.bG)})^(2/3) = ${Math.round(s.ht*1000)} mm`,
         `  Min gutter depth dbg = ht + loc = ${Math.round(s.ht*1000)} + ${Math.round(s.loc*1000)} = ${Math.round((s.ht+s.loc)*1000)} mm`,
         `  ha = ${fmm(p.ha)} mm    ht + loc governs: ${(s.ht+s.loc)*1000 > p.ha*1000 ? 'YES' : 'NO'}`,
         `  Each overflow weir length = wbg = ${Math.round(p.bG*1000)} mm  (Cl. 3.7.7.2)`,
@@ -2033,13 +2037,13 @@
 
   function drawChart(canvasId, cfg) {
     const canvas = $(canvasId);
-    if (!canvas) return;
+    if (!canvas || !canvas.offsetParent) return;
     // Resize canvas to container width, maintain aspect ratio
     const containerW = canvas.parentElement.clientWidth;
     if (containerW > 0) {
       const aspect = 272 / 400;
-      canvas.width = containerW;
-      canvas.height = Math.round(containerW * aspect);
+      canvas.width = Math.min(containerW, 800);
+      canvas.height = Math.round(Math.min(containerW, 800) * aspect);
     }
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
@@ -2300,15 +2304,18 @@
   function renderCharts(p) {
     _lastChartParams = p;
     drawChart('ch-h1', cfgH1(p.Qout, p.d_design * 1000, p.bG));
-    drawChart('ch-h4', cfgH4(p.Qout, p.hs_raw * 1000, p.dp.id));
 
     $('cw-h3').style.display  = p.method === 1 ? '' : 'none';
+    $('cw-h4').style.display  = p.method !== 1 ? '' : 'none';
     $('cw-h6a').style.display = p.method !== 1 ? '' : 'none';
     $('cw-h6b').style.display = p.method === 2 ? '' : 'none';
     $('cw-h8').style.display  = p.method === 3 ? '' : 'none';
 
     if (p.method === 1 && p.rh) {
       drawChart('ch-h3', cfgH3(p.Qout, p.rh.hr_calc * 1000, p.dp.id));
+    }
+    if (p.method !== 1) {
+      drawChart('ch-h4', cfgH4(p.Qout, p.hs_raw * 1000, p.dp.id));
     }
     if (p.method === 2 && p.sump) {
       drawChart('ch-h6a', cfgH6a(p.Qout, p.sump.loc * 1000, p.bG));
@@ -2854,6 +2861,7 @@
   window.acRecalc       = acRecalc;
   window.acApply        = acApply;
 
+  window.handleCalculate = handleCalculate;
   window.handleReset     = handleReset;
   window.handlePrint     = handlePrint;
   window.toggleChartSize = toggleChartSize;
