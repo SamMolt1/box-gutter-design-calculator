@@ -1043,8 +1043,8 @@
             <label for="dp-size">Downpipe Size (Fig H.4)</label>
             <select id="dp-size">
               <option value="auto">Auto (minimum compliant)</option>
-              <option value="100x50">100 × 50 mm rect.</option>
               <option value="90dia">DN90 ⌀90 mm</option>
+              <option value="100x50">100 × 50 mm rect.</option>
               <option value="100x75">100 × 75 mm rect.</option>
               <option value="100dia">DN100 ⌀100 mm</option>
               <option value="100x100">100 × 100 mm rect.</option>
@@ -1402,8 +1402,8 @@
   // Downpipe cross-sectional areas (m²) — all sizes shown in Figure H.4
   // Cl.3.7.8: minimum DN90 round or 100×50 rect.
   const DOWNPIPES = [
-    { id:'100x50',  label:'100×50 rect.',       area: 0.100*0.050,       extDia: 0.110 },
     { id:'90dia',   label:'DN90 (⌀90)',        area: Math.PI/4*0.090**2, extDia: 0.100 },
+    { id:'100x50',  label:'100×50 rect.',       area: 0.100*0.050,       extDia: 0.110 },
     { id:'100x75',  label:'100×75 rect.',       area: 0.100*0.075,       extDia: 0.110 },
     { id:'100dia',  label:'DN100 (⌀100)',       area: Math.PI/4*0.100**2, extDia: 0.110 },
     { id:'100x100', label:'100×100 rect.',      area: 0.100*0.100,       extDia: 0.110 },
@@ -1506,8 +1506,8 @@
     const hr_min  = 1.25 * (dpObj.extDia || 0.100);
     const hr      = Math.max(hr_calc, hr_min);
     const hrMinOk = hr_calc >= hr_min;
-    // lr from Figure H.3 using WATER depth (ha - freeboard), min 200mm
-    const lr  = Math.max(0.200, 1.054 * Math.pow(h_water_m * 1000, 1.1) / 1000);
+    // lr from Figure H.3 using WATER depth (ha - freeboard)
+    const lr  = 1.054 * Math.pow(h_water_m * 1000, 1.1) / 1000;
     const frontA = bG * hr;
     const minA   = 1.5 * dpObj.area;
     return { w: bG, hw, hr, hr_calc, hr_min, hrMinOk, lr, frontA, minA, openOk: frontA >= minA };
@@ -1765,7 +1765,7 @@
       ['Design Intensity Used',        I + ' mm/hr',                            lookI && I < lookI ? 'warn' : null],
       ['Design AEP / ARI',             ari === 100 ? '1% AEP (100-yr) ✓' : ari + '-yr ARI', ari === 100 ? true : 'warn'],
       ['Runoff Coefficient Cr',        '1.00  (all roofs, Cl. 5.4.6)',         true],
-      ['Total Design Flow Q',          Ls(Qtot),                                Qtot <= 16],
+      ['Total Design Flow Q',          Ls(Qtot),                                null],
       ['Number of Outlets',            outlets.toString(),                       null],
       ['Flow per Outlet',              Ls(Qout),                                Qout <= 16],
     ]);
@@ -1804,7 +1804,7 @@
         ['Calc. Height hr = 1.67×hw',   mmR(rh.hr_calc),                       null],
         ['Min hr ≥ 1.25 × pipe ext. dia  (Fig H.2)', mmR(rh.hr_min),          rh.hrMinOk],
         ['Adopted Rainhead Height hr',   mmR(rh.hr) + (rh.hrMinOk ? '' : '  (governed by min)'), null],
-        ['Length lr  (Fig H.3)',         mmR(rh.lr) + '  →  use ≥ 200 mm',    null],
+        ['Length lr  (Fig H.3)',         mmR(rh.lr),                            null],
         ['Pipe selected',                dp.label,                              null],
         ['Front Opening Area (w × hr)',  (rh.frontA * 1e6).toFixed(0) + ' mm²', rh.openOk],
         ['Min Opening (1.5 × pipe area)', (rh.minA * 1e6).toFixed(0) + ' mm²', null],
