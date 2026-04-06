@@ -1674,8 +1674,9 @@
       bG = r.b; ha = r.ha; d_total = r.d_total;
     }
 
-    // Round total depth up to nearest 5 mm
-    const d_design  = Math.ceil(d_total * 200) / 200;
+    // Round total depth up to nearest 5 mm, enforce 75 mm minimum (AS3500.3)
+    const MIN_DEPTH = 0.075;
+    const d_design  = Math.max(MIN_DEPTH, Math.ceil(d_total * 200) / 200);
     const ha_design = d_design - FREEBOARD;
     const capG      = gutterCapacity(bG, ha_design);
     const ratio     = d_design / bG;
@@ -1781,6 +1782,7 @@
       ...(d_final > d_design ? [['Minimum depth with overflow', mm(d_final), true]] : []),
       ['d / b Ratio',                 ratio.toFixed(3) + ' ≤ 0.75',            ratio <= 0.75],
       ['Gutter Capacity at ha',       Ls(capG),                                 capG >= Qout],
+      ['Min Depth  (AS3500.3)',       '75 mm',                                   d_final >= MIN_DEPTH],
       ['Adopt Gutter Size',           `${Math.round(bG*1000)} W × ${Math.round(d_final*1000)} D mm`, null],
     ]);
 
@@ -1851,6 +1853,7 @@
       ['Gutter width ≥ minimum (' + btype + ')',            mm(bG),                                       bG >= minW],
       ['Gutter slope 1:40 – 1:200  — Cl. 3.7.3',          `1:${slopeDen}`,                              slopeOk],
       ['Freeboard hf = 30 mm  — Cl. 3.7.2',               '30 mm',                                       true],
+      ['Gutter depth ≥ 75 mm  — AS3500.3',                mm(d_final),                                   d_final >= MIN_DEPTH],
       ['Depth/width ≤ 0.75',                               ratio.toFixed(3),                              ratio <= 0.75],
       ['Gutter capacity ≥ design flow',                    Ls(capG),                                      capG >= Qout],
       ['Downpipe ≥ DN90  — Cl. 3.7.8',                    dp.label,                                      dp.adequate],
